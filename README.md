@@ -10,7 +10,9 @@ simlationId: o ID da simulação, para obter diferentes logs em simulações que
 - segmentSizeFile: O arquivo contendo o tamanho dos segmentos de vídeo. A estrutura do arquivo é uma matriz (n,m), com n sendo o número de níveis de representação e m sendo o número de segmentos. Por exemplo, um vídeo codificado em três níveis de representação e dividido em 2 segmentos pode ser descrito através de um arquivo:
 
 1564 22394
+
 1627 46529
+
 1987 121606
 
 ## Como executar
