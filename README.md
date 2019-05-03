@@ -22,7 +22,7 @@ Para executar o programa é necessário seguir o seguintes passos:
 1. Acessar a pasta ns-3.29
 2. Mover a pasta contrib para a pasta do ns-3.29 
 3. Mover o arquivo dash-migration.cc para a pasta scratch ou qualquer outra pasta na path de execução do ns3
-4. Habilitar os testes e o exemplos através do comando:
+4. Habilitar os testes e exemplos através do comando:
 
   ./waf configure --enable-tests --enable-examples
 
