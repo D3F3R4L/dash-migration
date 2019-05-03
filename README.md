@@ -20,15 +20,17 @@ simlationId: o ID da simulação, para obter diferentes logs em simulações que
 Para executar o programa é necessário seguir o seguintes passos:
 
 1. Acessar a pasta ns-3.29
-2. Habilitar os testes e o exemplos através do comando:
+2. Mover a pasta contrib para a pasta do ns-3.29 
+3. Mover o arquivo dash-migration.cc para a pasta scratch ou qualquer outra pasta na path de execução do ns3
+4. Habilitar os testes e o exemplos através do comando:
 
   ./waf configure --enable-tests --enable-examples
 
-3. Construir e linkar as dependências e configurações estabelicidas através do comando:
+5. Construir e linkar as dependências e configurações estabelicidas através do comando:
 
   ./waf
 
-4. Rodar o script dash-migration, localizado na pasta scratch do ns-3.29, passando os parâmetros necessários descritos anteriormente. Exemplo:
+6. Rodar o script dash-migration, localizado na pasta scratch do ns-3.29, passando os parâmetros necessários descritos anteriormente. Exemplo:
 
   ./waf --run="dash-migration --simulationId=1 --numberOfClients=3 --adaptationAlgo=panda --segmentDuration=2000000 --segmentSizeFile=contrib/dash/segmentSizes.txt"
 
