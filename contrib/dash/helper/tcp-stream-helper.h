@@ -150,6 +150,8 @@ public:
    */
   ApplicationContainer Install (std::vector <std::pair <Ptr<Node>, std::string> > clients) const;
 
+  uint32_t checkApps(NodeContainer staContainer, uint32_t closedApps);
+
   void Handover(ApplicationContainer clientApps, Ptr<Node> node, Address ip);
 
 private:

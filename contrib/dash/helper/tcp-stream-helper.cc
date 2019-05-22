@@ -144,4 +144,23 @@ TcpStreamClientHelper::InstallPriv (Ptr<Node> node, std::string algo, uint16_t c
   return app;
 }
 
+uint32_t
+TcpStreamClientHelper::checkApps(NodeContainer staContainer, uint32_t closedApps)
+{ NS_LOG_UNCOND("checkApps");
+  bool c;
+  uint32_t nNodes = staContainer.GetN ();
+  for (uint32_t i = 0; i < nNodes; ++i)
+  {
+    Ptr<Node> p = staContainer.Get (i);
+    Ptr<Application> app = p->GetApplication(0);
+    c=app->GetObject<TcpStreamClient> ()->check ();
+    //NS_LOG_UNCOND(c);
+    if (c==true)
+    {
+      closedApps++;
+    }
+  }
+  return closedApps;
+}
+
 } // namespace ns3

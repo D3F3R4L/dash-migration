@@ -85,6 +85,7 @@ public:
    */
   void SetRemote (Address ip, uint16_t port);
   void HandoverApplication (Address ip);
+  bool check ();
 
 protected:
   virtual void DoDispose (void);

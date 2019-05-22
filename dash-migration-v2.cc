@@ -61,16 +61,32 @@ for (uint i = 0; i < clientApps.GetN (); i++)
   //clientHelper(server2Address, port);
 }
 
+void 
+stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer, uint32_t numberOfClients, uint32_t closedApps)
+{NS_LOG_UNCOND("antes ");NS_LOG_UNCOND(closedApps);
+  closedApps = clientHelper.checkApps(staContainer, closedApps);
+  NS_LOG_UNCOND("Depois ");NS_LOG_UNCOND(closedApps);
+  if (closedApps>=numberOfClients)
+  {
+    Simulator::Stop();
+  }
+  else
+  {
+    Simulator::Schedule(Seconds(5),&stopSim,clientHelper, staContainer,numberOfClients, closedApps);    
+  }
+}
+
 NS_LOG_COMPONENT_DEFINE ("dash-migrationExample");
 
 int
 main (int argc, char *argv[])
 {
+  uint32_t closedApps = 0;
 
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 3;
-  uint32_t numberOfClients = 2;
+  uint32_t numberOfClients = 3;
   uint32_t numberOfServers = 3;
   std::string adaptationAlgo = "panda";
   std::string segmentSizeFilePath = "contrib/dash/segmentSizes3.txt";
@@ -141,14 +157,14 @@ main (int argc, char *argv[])
 
   /* Set up WAN link between server node and access point*/
   PointToPointHelper p2p;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("1000000kb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("100000kb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("45ms"));
   NetDeviceContainer wanIpDevices;
   wanIpDevices = p2p.Install (serverNode, apNode);
 
   PointToPointHelper p2p2;
-  p2p2.SetDeviceAttribute ("DataRate", StringValue ("100kb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p2.SetDeviceAttribute ("DataRate", StringValue ("250kb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p2.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p2.SetChannelAttribute ("Delay", StringValue ("45ms"));
   NetDeviceContainer wanIpDevices2;
@@ -339,6 +355,7 @@ main (int argc, char *argv[])
   //NS_LOG_UNCOND("SERVER1"<< serverAddress);
   //NS_LOG_UNCOND("SERVER2"<< serverAddress2);
   Simulator::Schedule(Seconds(5),&funcaoDoida,clientApps, clientHelper, serverAddress2, clients);
+  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients, closedApps);
   Simulator::Run ();
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");

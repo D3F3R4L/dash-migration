@@ -88,7 +88,7 @@ TcpStreamClient::Controller (controllerEvent event)
           state = playing;
         }
       controllerEvent ev = playbackFinished;
-       std::cerr << "Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+       //std::cerr << "Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
       Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
       return;
     }
@@ -128,7 +128,7 @@ TcpStreamClient::Controller (controllerEvent event)
             {
               /*  e_pb  */
               controllerEvent ev = playbackFinished; //NS_LOG_UNCOND("playback finished");
-               std::cerr << "FIRST CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+               //std::cerr << "FIRST CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
               Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
             }
           else
@@ -153,7 +153,7 @@ TcpStreamClient::Controller (controllerEvent event)
       else if (event == playbackFinished && m_currentPlaybackIndex < m_lastSegmentIndex)
         {
           /*  e_pb  */
-           std::cerr << "SECOND CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+           //std::cerr << "SECOND CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
           PlaybackHandle (); //NS_LOG_UNCOND("playback finished antes do final");
           controllerEvent ev = playbackFinished;
           Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
@@ -497,6 +497,7 @@ TcpStreamClient::HandoverApplication (Address ip)
   //NS_LOG_UNCOND(m_segmentCounter);
   //controllerEvent eventtemp = event;
   controllerState temp = state;
+  m_peerAddress = ip;
   state = terminal;
   if (m_socket != 0)
     {
@@ -504,7 +505,7 @@ TcpStreamClient::HandoverApplication (Address ip)
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
       TypeId tid = TypeId::LookupByName ("ns3::TcpSocketFactory");
       m_socket = Socket::CreateSocket (GetNode (), tid);
-      m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom (ip), m_peerPort));
+      m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom (m_peerAddress), m_peerPort));
       m_socket->SetConnectCallback (
         MakeCallback (&TcpStreamClient::ConnectionSucceeded, this),
         MakeCallback (&TcpStreamClient::ConnectionFailed, this));
@@ -559,6 +560,19 @@ TcpStreamClient::StopApplication ()
   NS_LOG_UNCOND("StopApplication do final valendo");
 }
 
+
+bool
+TcpStreamClient::check ()
+{//NS_LOG_UNCOND(state);
+  if (state==terminal)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 
 template <typename T>
 void
