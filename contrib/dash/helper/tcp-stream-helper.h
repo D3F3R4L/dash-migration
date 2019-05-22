@@ -150,6 +150,8 @@ public:
    */
   ApplicationContainer Install (std::vector <std::pair <Ptr<Node>, std::string> > clients) const;
 
+  void Handover(ApplicationContainer clientApps, Ptr<Node> node, Address ip);
+
 private:
   /**
    * Install an ns3::TcpStreamClient on the node configured with all the

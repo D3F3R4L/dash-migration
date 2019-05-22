@@ -84,6 +84,7 @@ public:
    * \param port remote port
    */
   void SetRemote (Address ip, uint16_t port);
+  void HandoverApplication (Address ip);
 
 protected:
   virtual void DoDispose (void);

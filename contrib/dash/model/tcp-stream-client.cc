@@ -77,8 +77,8 @@ TcpStreamClient::Controller (controllerEvent event)
       if (m_currentPlaybackIndex <= m_lastSegmentIndex)
         {
           /*  e_d  */
-          m_segmentCounter++;
-          RequestRepIndex ();
+          m_segmentCounter++; NS_LOG_UNCOND(m_segmentCounter);
+          RequestRepIndex (); NS_LOG_UNCOND(m_peerAddress);
           state = downloadingPlaying;
           Send (m_videoData.segmentSize.at (m_currentRepIndex).at (m_segmentCounter));
         }
@@ -88,7 +88,7 @@ TcpStreamClient::Controller (controllerEvent event)
           state = playing;
         }
       controllerEvent ev = playbackFinished;
-      // std::cerr << "Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+       std::cerr << "Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
       Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
       return;
     }
@@ -97,11 +97,11 @@ TcpStreamClient::Controller (controllerEvent event)
   else if (state == downloadingPlaying)
     {
       if (event == downloadFinished)
-        {
+        { 
           if (m_segmentCounter < m_lastSegmentIndex)
             {
-              m_segmentCounter++;
-              RequestRepIndex ();
+              m_segmentCounter++; NS_LOG_UNCOND(m_segmentCounter);
+              RequestRepIndex (); NS_LOG_UNCOND(m_peerAddress);
             }
 
           if (m_bDelay > 0 && m_segmentCounter <= m_lastSegmentIndex)
@@ -127,8 +127,8 @@ TcpStreamClient::Controller (controllerEvent event)
           if (!PlaybackHandle ())
             {
               /*  e_pb  */
-              controllerEvent ev = playbackFinished;
-              // std::cerr << "FIRST CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+              controllerEvent ev = playbackFinished; //NS_LOG_UNCOND("playback finished");
+               std::cerr << "FIRST CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
               Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
             }
           else
@@ -146,28 +146,29 @@ TcpStreamClient::Controller (controllerEvent event)
       if (event == irdFinished)
         {
           /*  e_irc  */
+          //NS_LOG_UNCOND("maoe");
           state = downloadingPlaying;
           Send (m_videoData.segmentSize.at (m_currentRepIndex).at (m_segmentCounter));
         }
       else if (event == playbackFinished && m_currentPlaybackIndex < m_lastSegmentIndex)
         {
           /*  e_pb  */
-          // std::cerr << "SECOND CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
-          PlaybackHandle ();
+           std::cerr << "SECOND CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+          PlaybackHandle (); //NS_LOG_UNCOND("playback finished antes do final");
           controllerEvent ev = playbackFinished;
           Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
         }
       else if (event == playbackFinished && m_currentPlaybackIndex == m_lastSegmentIndex)
         {
-          PlaybackHandle ();
+       //NS_LOG_UNCOND("playback finished no final");
           /*  e_pf  */
           state = terminal;
-          StopApplication ();
+          //StopApplication ();
         }
       return;
     }
 }
-
+//break ns3::TcpStreamClient::Controller if m_segmentCounter == 25
 TypeId
 TcpStreamClient::GetTypeId (void)
 {
@@ -234,7 +235,7 @@ TcpStreamClient::TcpStreamClient ()
 
 void
 TcpStreamClient::Initialise (std::string algorithm, uint16_t clientId)
-{
+{ NS_LOG_UNCOND("client Initialise 238");
   NS_LOG_FUNCTION (this);
   m_videoData.segmentDuration = m_segmentDuration;
   if (ReadInBitrateValues (ToString (m_segmentSizeFilePath)) == -1)
@@ -272,15 +273,15 @@ TcpStreamClient::Initialise (std::string algorithm, uint16_t clientId)
 }
 
 TcpStreamClient::~TcpStreamClient ()
-{
+{ NS_LOG_UNCOND("nao eh aqui no client");
   NS_LOG_FUNCTION (this);
-  m_socket = 0;
+  /*m_socket = 0;
 
   delete algo;
   algo = NULL;
   delete [] m_data;
   m_data = 0;
-  m_dataSize = 0;
+  m_dataSize = 0;*/
 }
 
 void
@@ -435,7 +436,7 @@ TcpStreamClient::PlaybackHandle ()
 
 void
 TcpStreamClient::SetRemote (Address ip, uint16_t port)
-{
+{ NS_LOG_UNCOND("client Initialise 238");
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = ip;
   m_peerPort = port;
@@ -459,15 +460,15 @@ TcpStreamClient::SetRemote (Ipv6Address ip, uint16_t port)
 
 void
 TcpStreamClient::DoDispose (void)
-{
+{NS_LOG_UNCOND("Morreu");
   NS_LOG_FUNCTION (this);
-  Application::DoDispose ();
+  //Application::DoDispose ();
 }
 
 void
 TcpStreamClient::StartApplication (void)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this); NS_LOG_UNCOND("client StartApplication 471");
   if (m_socket == 0)
     {
       TypeId tid = TypeId::LookupByName ("ns3::TcpSocketFactory");
@@ -488,10 +489,61 @@ TcpStreamClient::StartApplication (void)
 }
 
 void
+TcpStreamClient::HandoverApplication (Address ip)
+{
+  NS_LOG_FUNCTION (this);
+  NS_LOG_UNCOND("client HandoverApplication 495");
+  //NS_LOG_UNCOND(m_currentPlaybackIndex);
+  //NS_LOG_UNCOND(m_segmentCounter);
+  //controllerEvent eventtemp = event;
+  controllerState temp = state;
+  state = terminal;
+  if (m_socket != 0)
+    {
+      m_socket->Close ();
+      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+      TypeId tid = TypeId::LookupByName ("ns3::TcpSocketFactory");
+      m_socket = Socket::CreateSocket (GetNode (), tid);
+      m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom (ip), m_peerPort));
+      m_socket->SetConnectCallback (
+        MakeCallback (&TcpStreamClient::ConnectionSucceeded, this),
+        MakeCallback (&TcpStreamClient::ConnectionFailed, this));
+      m_socket->SetRecvCallback (MakeCallback (&TcpStreamClient::HandleRead, this));
+    }
+  state = temp;
+  //event= eventtemp;
+  //NS_LOG_UNCOND(m_peerAddress);
+  //m_peerAddress = ip;
+  //StartApplication();
+  //NS_LOG_UNCOND(m_peerAddress);
+
+  /*
+      m_peerAddress = ip;
+      //m_socket->Close (); NS_LOG_UNCOND("HandoverApplication 496");
+      //m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ()); NS_LOG_UNCOND("HandoverApplication 497");
+      //m_socket = 0; NS_LOG_UNCOND("HandoverApplication 498");
+      TypeId tid = TypeId::LookupByName ("ns3::TcpSocketFactory"); NS_LOG_UNCOND("HandoverApplication 499");
+      NS_LOG_UNCOND("HandoverApplication 497");
+      m_socket = Socket::CreateSocket (GetNode (), tid);
+      if (Ipv4Address::IsMatchingType (m_peerAddress) == true)
+        {NS_LOG_UNCOND("HandoverApplication 500");
+          m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom (m_peerAddress), m_peerPort));
+        }
+      else if (Ipv6Address::IsMatchingType (m_peerAddress) == true)
+        {NS_LOG_UNCOND("HandoverApplication 504");
+          m_socket->Connect (Inet6SocketAddress (Ipv6Address::ConvertFrom (m_peerAddress), m_peerPort));
+        }NS_LOG_UNCOND("HandoverApplication 506");
+      m_socket->SetConnectCallback (
+        MakeCallback (&TcpStreamClient::ConnectionSucceeded, this),
+        MakeCallback (&TcpStreamClient::ConnectionFailed, this));
+      m_socket->SetRecvCallback (MakeCallback (&TcpStreamClient::HandleRead, this));*/
+}
+
+void
 TcpStreamClient::StopApplication ()
 {
   NS_LOG_FUNCTION (this);
-
+  //NS_LOG_UNCOND("StopApplication antes do final");
   if (m_socket != 0)
     {
       m_socket->Close ();
@@ -504,6 +556,7 @@ TcpStreamClient::StopApplication ()
   bufferLog.close ();
   throughputLog.close ();
   bufferUnderrunLog.close ();
+  NS_LOG_UNCOND("StopApplication do final valendo");
 }
 
 
@@ -528,7 +581,7 @@ TcpStreamClient::PreparePacket (T & message)
 
 void
 TcpStreamClient::ConnectionSucceeded (Ptr<Socket> socket)
-{
+{ NS_LOG_UNCOND("client ConnectionSucceeded 571");
   NS_LOG_FUNCTION (this << socket);
   NS_LOG_LOGIC ("Tcp Stream Client connection succeeded");
   controllerEvent event = init;
@@ -537,7 +590,7 @@ TcpStreamClient::ConnectionSucceeded (Ptr<Socket> socket)
 
 void
 TcpStreamClient::ConnectionFailed (Ptr<Socket> socket)
-{
+{ NS_LOG_UNCOND("client ConnectionFailed  580");
   NS_LOG_FUNCTION (this << socket);
   NS_LOG_LOGIC ("Tcp Stream Client connection failed");
 }
