@@ -37,42 +37,21 @@ using namespace ns3;
 static void 
 funcaoDoida(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Address server2Address, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
-  //clientHelper.SetAttribute("RemoteAddress",AddressValue(server2Address));
-  //clientHelper.Handover(staContainer.Get(0), server2Address);
-  
-  //clientApps.Stop(Seconds(10));
-  //TcpStreamClientHelper clientHelper (server2Address, 9); NS_LOG_UNCOND("dash Install 288");
-  //clientHelper.SetAttribute ("SegmentDuration", UintegerValue (2000000));
-  //clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue ("contrib/dash/segmentSizes3.txt"));
-  //clientHelper.SetAttribute ("NumberOfClients", UintegerValue(2));
-  //clientHelper.SetAttribute ("SimulationId", UintegerValue (3)); NS_LOG_UNCOND("dash Install 292");
-  //clientApps = clientHelper.Install (clients); NS_LOG_UNCOND("dash Install 293");
-
   clientHelper.Handover(clientApps, clients.at (0).first, server2Address);
-/*
-for (uint i = 0; i < clientApps.GetN (); i++)
-    {
-      double startTime = 2.0 + ((i * 3) / 100.0);
-      clientApps.Get (i)->SetStartTime (Seconds (startTime));
-      
-
-    }
-*/
-  //clientHelper(server2Address, port);
 }
 
 void 
-stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer, uint32_t numberOfClients, uint32_t closedApps)
-{NS_LOG_UNCOND("antes ");NS_LOG_UNCOND(closedApps);
-  closedApps = clientHelper.checkApps(staContainer, closedApps);
-  NS_LOG_UNCOND("Depois ");NS_LOG_UNCOND(closedApps);
+stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer, uint32_t numberOfClients)
+{
+  uint32_t closedApps = 0;
+  closedApps = clientHelper.checkApps(staContainer);
   if (closedApps>=numberOfClients)
   {
     Simulator::Stop();
   }
   else
   {
-    Simulator::Schedule(Seconds(5),&stopSim,clientHelper, staContainer,numberOfClients, closedApps);    
+    Simulator::Schedule(Seconds(5),&stopSim,clientHelper, staContainer,numberOfClients);    
   }
 }
 
@@ -81,12 +60,11 @@ NS_LOG_COMPONENT_DEFINE ("dash-migrationExample");
 int
 main (int argc, char *argv[])
 {
-  uint32_t closedApps = 0;
 
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 3;
-  uint32_t numberOfClients = 3;
+  uint32_t numberOfClients = 1;
   uint32_t numberOfServers = 3;
   std::string adaptationAlgo = "panda";
   std::string segmentSizeFilePath = "contrib/dash/segmentSizes3.txt";
@@ -157,16 +135,16 @@ main (int argc, char *argv[])
 
   /* Set up WAN link between server node and access point*/
   PointToPointHelper p2p;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("100000kb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("45ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("130ms"));
   NetDeviceContainer wanIpDevices;
   wanIpDevices = p2p.Install (serverNode, apNode);
 
   PointToPointHelper p2p2;
-  p2p2.SetDeviceAttribute ("DataRate", StringValue ("250kb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p2.SetDeviceAttribute ("DataRate", StringValue ("100kb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p2.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p2.SetChannelAttribute ("Delay", StringValue ("45ms"));
+  p2p2.SetChannelAttribute ("Delay", StringValue ("130ms"));
   NetDeviceContainer wanIpDevices2;
   wanIpDevices2 = p2p2.Install (serverNode2, apNode);
 
@@ -308,9 +286,9 @@ main (int argc, char *argv[])
 
 
   /* Install TCP Receiver on the access point */
-  TcpStreamServerHelper serverHelper (port); NS_LOG_UNCOND("dash Install 277");
-  ApplicationContainer serverApp = serverHelper.Install (serverNode); NS_LOG_UNCOND("dash Install 278");
-  ApplicationContainer serverApp2 = serverHelper.Install (serverNode2); NS_LOG_UNCOND("dash Install 279");
+  TcpStreamServerHelper serverHelper (port); //NS_LOG_UNCOND("dash Install 277");
+  ApplicationContainer serverApp = serverHelper.Install (serverNode); //NS_LOG_UNCOND("dash Install 278");
+  ApplicationContainer serverApp2 = serverHelper.Install (serverNode2); //NS_LOG_UNCOND("dash Install 279");
   serverApp.Start (Seconds (1.0));
   serverApp2.Start (Seconds (1.0));
 
@@ -319,12 +297,12 @@ main (int argc, char *argv[])
   clients_temp0.push_back(clients[0]);*/
 
   /* Install TCP/UDP Transmitter on the station */
-  TcpStreamClientHelper clientHelper (serverAddress, port); NS_LOG_UNCOND("dash Install 288");
+  TcpStreamClientHelper clientHelper (serverAddress, port); //NS_LOG_UNCOND("dash Install 288");
   clientHelper.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
   clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
-  clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId)); NS_LOG_UNCOND("dash Install 292");
-  ApplicationContainer clientApps = clientHelper.Install (clients); NS_LOG_UNCOND("dash Install 293");
+  clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId)); //NS_LOG_UNCOND("dash Install 292");
+  ApplicationContainer clientApps = clientHelper.Install (clients); //NS_LOG_UNCOND("dash Install 293");
 
 
 /*
@@ -354,8 +332,8 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfClients);
   //NS_LOG_UNCOND("SERVER1"<< serverAddress);
   //NS_LOG_UNCOND("SERVER2"<< serverAddress2);
-  Simulator::Schedule(Seconds(5),&funcaoDoida,clientApps, clientHelper, serverAddress2, clients);
-  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients, closedApps);
+  Simulator::Schedule(Seconds(10),&funcaoDoida,clientApps, clientHelper, serverAddress2, clients);
+  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients);
   Simulator::Run ();
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");

@@ -86,6 +86,7 @@ public:
   void SetRemote (Address ip, uint16_t port);
   void HandoverApplication (Address ip);
   bool check ();
+  void SetHandover (Address ip);
 
 protected:
   virtual void DoDispose (void);
@@ -258,6 +259,7 @@ private:
 
   Ptr<Socket> m_socket; //!< Socket
   Address m_peerAddress; //!< Remote peer address
+  Address newip;
   uint16_t m_peerPort; //!< Remote peer port
 
   uint16_t m_clientId; //!< The Id of this client, for logging purposes
@@ -277,6 +279,7 @@ private:
   int64_t m_bDelay;  //!< Minimum buffer level in microseconds of playback when the next download must be started
   int64_t m_highestRepIndex; //!< This is the index of the highest representation
   uint64_t m_segmentDuration; //!< The duration of a segment in microseconds
+  bool handover;
 
   std::ofstream adaptationLog; //!< Output stream for logging adaptation information
   std::ofstream downloadLog; //!< Output stream for logging download information

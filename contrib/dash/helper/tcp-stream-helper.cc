@@ -41,20 +41,20 @@ TcpStreamServerHelper::SetAttribute (
 
 ApplicationContainer
 TcpStreamServerHelper::Install (Ptr<Node> node) const
-{NS_LOG_UNCOND("serverhelper Install 44");
+{//NS_LOG_UNCOND("serverhelper Install 44");
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
 TcpStreamServerHelper::Install (std::string nodeName) const
-{NS_LOG_UNCOND("serverhelper Install 50");
+{//NS_LOG_UNCOND("serverhelper Install 50");
   Ptr<Node> node = Names::Find<Node> (nodeName);
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
 TcpStreamServerHelper::Install (NodeContainer c) const
-{NS_LOG_UNCOND("serverhelper Install 57");
+{//NS_LOG_UNCOND("serverhelper Install 57");
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
     {
@@ -66,7 +66,7 @@ TcpStreamServerHelper::Install (NodeContainer c) const
 
 Ptr<Application>
 TcpStreamServerHelper::InstallPriv (Ptr<Node> node) const
-{ NS_LOG_UNCOND("serverhelper InstallPriv 69");
+{ //NS_LOG_UNCOND("serverhelper InstallPriv 69");
   Ptr<Application> app = m_factory.Create<TcpStreamServer> ();
   node->AddApplication (app);
 
@@ -74,21 +74,21 @@ TcpStreamServerHelper::InstallPriv (Ptr<Node> node) const
 }
 
 TcpStreamClientHelper::TcpStreamClientHelper (Address address, uint16_t port)
-{ NS_LOG_UNCOND("clienthelper construtor 77");
+{ //NS_LOG_UNCOND("clienthelper construtor 77");
   m_factory.SetTypeId (TcpStreamClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (address));
   SetAttribute ("RemotePort", UintegerValue (port));
 }
 
 TcpStreamClientHelper::TcpStreamClientHelper (Ipv4Address address, uint16_t port)
-{ NS_LOG_UNCOND("clienthelper construtor 84");
+{ //NS_LOG_UNCOND("clienthelper construtor 84");
   m_factory.SetTypeId (TcpStreamClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (Address(address)));
   SetAttribute ("RemotePort", UintegerValue (port));
 }
 
 TcpStreamClientHelper::TcpStreamClientHelper (Ipv6Address address, uint16_t port)
-{ NS_LOG_UNCOND("clienthelper construtor 91");
+{ //NS_LOG_UNCOND("clienthelper construtor 91");
   m_factory.SetTypeId (TcpStreamClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (Address(address)));
   SetAttribute ("RemotePort", UintegerValue (port));
@@ -102,7 +102,7 @@ TcpStreamClientHelper::SetAttribute (std::string name, const AttributeValue &val
 
 ApplicationContainer
 TcpStreamClientHelper::Install (std::vector <std::pair <Ptr<Node>, std::string> > clients) const
-{ NS_LOG_UNCOND("clienthelper Install 105");
+{ //NS_LOG_UNCOND("clienthelper Install 105");
   ApplicationContainer apps;
   for (uint i = 0; i < clients.size (); i++)
     {
@@ -115,27 +115,14 @@ TcpStreamClientHelper::Install (std::vector <std::pair <Ptr<Node>, std::string> 
 void
 //TcpStreamClientHelper::Handover(Ptr<Node> node, ApplicationContainer node, Address ip)
 TcpStreamClientHelper::Handover(ApplicationContainer clientApps, Ptr<Node> node, Address ip)
-{ NS_LOG_UNCOND("clientHelper Handover 118");
-  //Ptr<Application> app = m_factory.Create<TcpStreamClient> ();
+{ //NS_LOG_UNCOND("clientHelper Handover 118");
   Ptr<Application> app = node->GetApplication(0);
-  app->GetObject<TcpStreamClient> ()->HandoverApplication (ip);
-  //app->GetObject<TcpStreamClient> ()->StopApplication();
-
-  //Ptr<Node> node
-  //TcpStreamClient::HandoverApplication ();
-/*
-  //ApplicationContainer apps;
-  Ptr<Application> app = m_factory.Create<TcpStreamClient> ();
-  app->GetObject<TcpStreamClient> ()-> HandoverApplication(ip);
-  //node->GetObject<TcpStreamClient> ()->HandoverApplication (ip);
-  //TcpStreamClient::HandoverApplication (ip);
-  //HandoverApplication (ip);*/
-      
+  app->GetObject<TcpStreamClient> ()->SetHandover(ip);
 }
 
 Ptr<Application>
 TcpStreamClientHelper::InstallPriv (Ptr<Node> node, std::string algo, uint16_t clientId) const
-{ NS_LOG_UNCOND("clienthelper InstallPriv 130");
+{ //NS_LOG_UNCOND("clienthelper InstallPriv 130");
   Ptr<Application> app = m_factory.Create<TcpStreamClient> ();
   app->GetObject<TcpStreamClient> ()->SetAttribute ("ClientId", UintegerValue (clientId));
   app->GetObject<TcpStreamClient> ()->Initialise (algo, clientId);
@@ -145,8 +132,9 @@ TcpStreamClientHelper::InstallPriv (Ptr<Node> node, std::string algo, uint16_t c
 }
 
 uint32_t
-TcpStreamClientHelper::checkApps(NodeContainer staContainer, uint32_t closedApps)
-{ NS_LOG_UNCOND("checkApps");
+TcpStreamClientHelper::checkApps(NodeContainer staContainer)
+{ //NS_LOG_UNCOND("checkApps");
+  uint32_t closedApps=0;
   bool c;
   uint32_t nNodes = staContainer.GetN ();
   for (uint32_t i = 0; i < nNodes; ++i)

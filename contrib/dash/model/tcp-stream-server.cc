@@ -63,7 +63,7 @@ TcpStreamServer::TcpStreamServer ()
 }
 
 TcpStreamServer::~TcpStreamServer ()
-{ NS_LOG_UNCOND("nao eh aqui no server");
+{ //NS_LOG_UNCOND("nao eh aqui no server");
   NS_LOG_FUNCTION (this);
   m_socket = 0;
   m_socket6 = 0;
@@ -73,13 +73,13 @@ void
 TcpStreamServer::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
-  //Application::DoDispose ();
+  Application::DoDispose ();
 }
 
 void
 TcpStreamServer::StartApplication (void)
 {
-  NS_LOG_FUNCTION (this); NS_LOG_UNCOND("server StartApplication 82");
+  NS_LOG_FUNCTION (this); //NS_LOG_UNCOND("server StartApplication 82");
 
   if (m_socket == 0)
     {
@@ -110,7 +110,7 @@ TcpStreamServer::StartApplication (void)
 void
 TcpStreamServer::StopApplication ()
 {
-  NS_LOG_FUNCTION (this); NS_LOG_UNCOND("server StopApplication 113");
+  NS_LOG_FUNCTION (this); //NS_LOG_UNCOND("server StopApplication 113");
 
   if (m_socket != 0)
     {
