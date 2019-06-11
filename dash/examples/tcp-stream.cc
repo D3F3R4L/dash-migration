@@ -1,5 +1,21 @@
-/* Adapted from haraldott project
- * Author: fabioraraujo */
+/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
+/*
+ * Copyright 2016 Technische Universitaet Berlin
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation;
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 // - TCP Stream server and user-defined number of clients connected with an AP
 // - WiFi connection
 // - Tracing of throughput, packet information is done in the client
@@ -33,42 +49,28 @@ std::string ToString(T val)
 
 using namespace ns3;
 
-
-static void 
-funcaoDoida(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Address server2Address, std::vector <std::pair <Ptr<Node>, std::string> > clients)
-{
-  clientHelper.Handover(clientApps, clients.at (0).first, server2Address);
-}
-
-void 
-stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer, uint32_t numberOfClients)
-{
-  uint32_t closedApps = 0;
-  closedApps = clientHelper.checkApps(staContainer);
-  if (closedApps>=numberOfClients)
-  {
-    Simulator::Stop();
-  }
-  else
-  {
-    Simulator::Schedule(Seconds(5),&stopSim,clientHelper, staContainer,numberOfClients);    
-  }
-}
-
-NS_LOG_COMPONENT_DEFINE ("dash-migrationExample");
+NS_LOG_COMPONENT_DEFINE ("TcpStreamExample");
 
 int
 main (int argc, char *argv[])
 {
+//
+// Users may find it convenient to turn on explicit debugging
+// for selected modules; the below lines suggest how to do this
+//
+// #if 1
+//   LogComponentEnable ("TcpStreamExample", LOG_LEVEL_INFO);
+//   LogComponentEnable ("TcpStreamClientApplication", LOG_LEVEL_INFO);
+//   LogComponentEnable ("TcpStreamServerApplication", LOG_LEVEL_INFO);
+// #endif
 
-  uint64_t segmentDuration = 2000000;
+  uint64_t segmentDuration;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
-  uint32_t simulationId = 3;
-  uint32_t numberOfClients = 20;
-  uint32_t numberOfServers = 3;
-  std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "contrib/dash/segmentSizes3.txt";
-  
+  uint32_t simulationId;
+  uint32_t numberOfClients;
+  std::string adaptationAlgo;
+  std::string segmentSizeFilePath;
+
   bool shortGuardInterval = true;
 
   CommandLine cmd;
@@ -110,24 +112,23 @@ main (int argc, char *argv[])
 
   /* Create Nodes */
   NodeContainer networkNodes;
-  networkNodes.Create (numberOfClients + numberOfServers);
+  networkNodes.Create (numberOfClients + 2);
 
   /* Determin access point and server node */
   Ptr<Node> apNode = networkNodes.Get (0);
   Ptr<Node> serverNode = networkNodes.Get (1);
-  Ptr<Node> serverNode2 = networkNodes.Get (2);
 
   /* Configure clients as STAs in the WLAN */
   NodeContainer staContainer;
   /* Begin at +2, because position 0 is the access point and position 1 is the server */
-  for (NodeContainer::Iterator i = networkNodes.Begin () + numberOfServers; i != networkNodes.End (); ++i)
+  for (NodeContainer::Iterator i = networkNodes.Begin () + 2; i != networkNodes.End (); ++i)
     {
       staContainer.Add (*i);
     }
 
   /* Determin client nodes for object creation with client helper class */
   std::vector <std::pair <Ptr<Node>, std::string> > clients;
-  for (NodeContainer::Iterator i = networkNodes.Begin () + numberOfServers; i != networkNodes.End (); ++i)
+  for (NodeContainer::Iterator i = networkNodes.Begin () + 2; i != networkNodes.End (); ++i)
     {
       std::pair <Ptr<Node>, std::string> client (*i, adaptationAlgo);
       clients.push_back (client);
@@ -135,18 +136,11 @@ main (int argc, char *argv[])
 
   /* Set up WAN link between server node and access point*/
   PointToPointHelper p2p;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("35Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("100000kb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("30ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("45ms"));
   NetDeviceContainer wanIpDevices;
   wanIpDevices = p2p.Install (serverNode, apNode);
-
-  PointToPointHelper p2p2;
-  p2p2.SetDeviceAttribute ("DataRate", StringValue ("35Mb/s")); // This must not be more than the maximum throughput in 802.11n
-  p2p2.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p2.SetChannelAttribute ("Delay", StringValue ("30ms"));
-  NetDeviceContainer wanIpDevices2;
-  wanIpDevices2 = p2p2.Install (serverNode2, apNode);
 
   /* create MAC layers */
   WifiMacHelper wifiMac;
@@ -180,17 +174,11 @@ main (int argc, char *argv[])
 
   /* Assign IP addresses */
   Ipv4AddressHelper address;
-  Ipv4AddressHelper address2;
 
   /* IPs for WAN */
   address.SetBase ("76.1.1.0", "255.255.255.0");
-  address2.SetBase ("96.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer wanInterface = address.Assign (wanIpDevices);
-  Ipv4InterfaceContainer wanInterface2 = address2.Assign (wanIpDevices2);
-  
-
   Address serverAddress = Address(wanInterface.GetAddress (0));
-  Address serverAddress2 = Address(wanInterface2.GetAddress (0));
 
   /* IPs for WLAN (STAs and AP) */
   address.SetBase ("192.168.1.0", "255.255.255.0");
@@ -286,54 +274,25 @@ main (int argc, char *argv[])
 
 
   /* Install TCP Receiver on the access point */
-  TcpStreamServerHelper serverHelper (port); //NS_LOG_UNCOND("dash Install 277");
-  ApplicationContainer serverApp = serverHelper.Install (serverNode); //NS_LOG_UNCOND("dash Install 278");
-  ApplicationContainer serverApp2 = serverHelper.Install (serverNode2); //NS_LOG_UNCOND("dash Install 279");
+  TcpStreamServerHelper serverHelper (port);
+  ApplicationContainer serverApp = serverHelper.Install (serverNode);
   serverApp.Start (Seconds (1.0));
-  serverApp2.Start (Seconds (1.0));
-
-/*
-  std::vector <std::pair <Ptr<Node>, std::string> > clients_temp0;
-  clients_temp0.push_back(clients[0]);*/
-
   /* Install TCP/UDP Transmitter on the station */
-  TcpStreamClientHelper clientHelper (serverAddress, port); //NS_LOG_UNCOND("dash Install 288");
+  TcpStreamClientHelper clientHelper (serverAddress, port);
   clientHelper.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
   clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
-  clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId)); //NS_LOG_UNCOND("dash Install 292");
-  ApplicationContainer clientApps = clientHelper.Install (clients); //NS_LOG_UNCOND("dash Install 293");
-
-
-/*
-  std::vector <std::pair <Ptr<Node>, std::string> > clients_temp1;
-  clients_temp1.push_back(clients[1]);
-
-  TcpStreamClientHelper clientHelper2 (serverAddress2, port);
-  clientHelper2.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
-  clientHelper2.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
-  clientHelper2.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
-  clientHelper2.SetAttribute ("SimulationId", UintegerValue (simulationId+1));
-  ApplicationContainer clientApps2 = clientHelper2.Install (clients_temp1);*/
+  clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
+  ApplicationContainer clientApps = clientHelper.Install (clients);
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
       double startTime = 2.0 + ((i * 3) / 100.0);
       clientApps.Get (i)->SetStartTime (Seconds (startTime));
     }
-  /*
-  for (uint i = 0; i < clientApps2.GetN (); i++)
-    {
-      double startTime = 2.0 + ((i * 3) / 100.0);
-      clientApps2.Get (i)->SetStartTime (Seconds (startTime)); 
-    }*/
 
 
   NS_LOG_INFO ("Run Simulation.");
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfClients);
-  //NS_LOG_UNCOND("SERVER1"<< serverAddress);
-  //NS_LOG_UNCOND("SERVER2"<< serverAddress2);
-  //Simulator::Schedule(Seconds(10),&funcaoDoida,clientApps, clientHelper, serverAddress2, clients);
-  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients);
   Simulator::Run ();
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");
