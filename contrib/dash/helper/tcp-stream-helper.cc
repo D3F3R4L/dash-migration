@@ -113,11 +113,28 @@ TcpStreamClientHelper::Install (std::vector <std::pair <Ptr<Node>, std::string> 
 }
 
 void
-//TcpStreamClientHelper::Handover(Ptr<Node> node, ApplicationContainer node, Address ip)
 TcpStreamClientHelper::Handover(ApplicationContainer clientApps, Ptr<Node> node, Address ip)
 { //NS_LOG_UNCOND("clientHelper Handover 118");
   Ptr<Application> app = node->GetApplication(0);
   app->GetObject<TcpStreamClient> ()->SetHandover(ip);
+}
+
+double
+TcpStreamClientHelper::GetTotalBufferUnderrunTime(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  double t;
+  Ptr<Application> app = node->GetApplication(0);
+  t=app->GetObject<TcpStreamClient> ()->GetBufferUnderrunTotalTime();
+  return t;
+}
+
+uint16_t
+TcpStreamClientHelper::GetNumbersOfBufferUnderrun(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  double i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->GetBufferUnderrunCount();
+  return i;
 }
 
 Ptr<Application>

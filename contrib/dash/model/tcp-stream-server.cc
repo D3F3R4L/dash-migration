@@ -60,6 +60,8 @@ TcpStreamServer::GetTypeId (void)
 TcpStreamServer::TcpStreamServer ()
 {
   NS_LOG_FUNCTION (this);
+  totalBytesSend = 0;
+  startSend = 0;
 }
 
 TcpStreamServer::~TcpStreamServer ()
@@ -129,6 +131,7 @@ TcpStreamServer::HandleRead (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
+  //std::cout << Simulator::Now ().GetSeconds () << "s: \t" << " read" << std::endl;
   Address from;
   packet = socket->RecvFrom (from);
   int64_t packetSizeToReturn = GetCommand (packet);
@@ -136,16 +139,22 @@ TcpStreamServer::HandleRead (Ptr<Socket> socket)
   m_callbackData [from].currentTxBytes = 0;
   m_callbackData [from].packetSizeToReturn = packetSizeToReturn;
   m_callbackData [from].send = true;
-
   HandleSend (socket, socket->GetTxAvailable ());
-
 }
 
 void
 TcpStreamServer::HandleSend (Ptr<Socket> socket, uint32_t txSpace)
 {
   Address from;
+  Time now = Simulator::Now ();
   socket->GetPeerName (from);
+  if(now.GetSeconds()>= (startSend+2))
+  {
+    serverThroughput(totalBytesSend);
+  }
+  //NS_LOG_UNCOND(m_callbackData [from].packetSizeToReturn);
+  //std::cout << Simulator::Now ().GetSeconds () << "s: \t" << totalBytesSend << " send" << std::endl;
+  //std::cout << socket->GetTxAvailable () << "tx" << socket->GetRxAvailable ()<< "Rx" << std::endl;
   // look up values for the connected client and whose values are stored in from
   if (m_callbackData [from].currentTxBytes == m_callbackData [from].packetSizeToReturn)
     {
@@ -160,6 +169,8 @@ TcpStreamServer::HandleSend (Ptr<Socket> socket, uint32_t txSpace)
       toSend = std::min (socket->GetTxAvailable (), m_callbackData [from].packetSizeToReturn - m_callbackData [from].currentTxBytes);
       Ptr<Packet> packet = Create<Packet> (toSend);
       int amountSent = socket->Send (packet, 0);
+      totalBytesSend+=amountSent;
+      //NS_LOG_UNCOND("aqui");NS_LOG_UNCOND(amountSent);
       if (amountSent > 0)
         {
           m_callbackData [from].currentTxBytes += amountSent;
@@ -228,4 +239,16 @@ TcpStreamServer::GetCommand (Ptr<Packet> packet)
   convert >> packetSizeToReturn;
   return packetSizeToReturn;
 }
+
+double
+TcpStreamServer::serverThroughput (double totalBytesSend)
+{
+  Time now = Simulator::Now ();                                        /* Return the simulator's virtual time. */
+  double Throughput = totalBytesSend * (double) 8 / ((now.GetSeconds()-startSend)*1e5);     /* Convert Application RX Packets to MBits. */
+  //std::cout << now.GetSeconds () << "s: \t" << Throughput << " server" << std::endl;
+  startSend= now.GetSeconds ();
+  totalBytesSend=0;
+  return Throughput;
+}
+
 } // Namespace ns3

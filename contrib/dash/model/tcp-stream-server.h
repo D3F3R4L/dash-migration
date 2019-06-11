@@ -124,11 +124,15 @@ private:
    */
   int64_t GetCommand (Ptr<Packet> packet);
 
+  double serverThroughput (double totalBytesSend);
+
   uint16_t m_port; //!< Port on which we listen for incoming packets.
   Ptr<Socket> m_socket; //!< IPv4 Socket
   Ptr<Socket> m_socket6; //!< IPv6 Socket
   std::map <Address, callbackData> m_callbackData; //!< With this it is possible to access the currentTxBytes, the packetSizeToReturn and the send boolean through the from value of the client.
   std::vector<Address> m_connectedClients; //!< Vector which holds the list of currently connected clients.
+  double totalBytesSend;
+  double startSend; 
 
 
 };

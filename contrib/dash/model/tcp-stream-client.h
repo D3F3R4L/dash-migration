@@ -87,6 +87,9 @@ public:
   void HandoverApplication (Address ip);
   bool check ();
   void SetHandover (Address ip);
+  double GetBufferUnderrunTotalTime();
+  uint16_t GetBufferUnderrunCount();
+  double CalculateThroughput ();
 
 protected:
   virtual void DoDispose (void);
@@ -228,7 +231,7 @@ private:
    * - arrival time of packet
    * - size of packet
    */
-  void LogThroughput (uint32_t packetSize);
+  void LogThroughput (double packetSize, Address from);
   /*
    * \brief Log information about playback process
    *
@@ -252,7 +255,7 @@ private:
    * The output streams defined in TcpStreamClient are opened,
    * and log files containing the used adaptation algorithm are created for output.
    */
-  void InitializeLogFiles (std::string simulationId, std::string clientId, std::string numberOfClients);
+  void InitializeLogFiles (std::string simulationId, std::string clientId, std::string numberOfClients, std::string serverId);
 
   uint32_t m_dataSize; //!< packet payload size
   uint8_t *m_data; //!< packet payload data
@@ -260,9 +263,11 @@ private:
   Ptr<Socket> m_socket; //!< Socket
   Address m_peerAddress; //!< Remote peer address
   Address newip;
+  Address serverIpv4;
   uint16_t m_peerPort; //!< Remote peer port
 
   uint16_t m_clientId; //!< The Id of this client, for logging purposes
+  uint16_t serverId;
   uint16_t m_simulationId; //!< The Id of this simulation, for logging purposes
   uint16_t m_numberOfClients; //!< The total number of clients for this simulation, for logging purposes
   std::string m_segmentSizeFilePath; //!< The relative path (from ns-3.x directory) to the file containing the segment sizes in bytes
@@ -280,6 +285,12 @@ private:
   int64_t m_highestRepIndex; //!< This is the index of the highest representation
   uint64_t m_segmentDuration; //!< The duration of a segment in microseconds
   bool handover;
+  uint16_t bufferUnderrunCount;
+  double underrunBegin;
+  double bufferUnderrunTotalTime;
+  int64_t throughput;
+  int64_t lastbyte;
+  int64_t totalbytes;
 
   std::ofstream adaptationLog; //!< Output stream for logging adaptation information
   std::ofstream downloadLog; //!< Output stream for logging download information
