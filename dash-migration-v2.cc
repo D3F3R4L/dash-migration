@@ -64,9 +64,9 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 3;
-  uint32_t numberOfClients = 20;
+  uint32_t numberOfClients = 1;
   uint32_t numberOfServers = 3;
-  std::string adaptationAlgo = "festive";
+  std::string adaptationAlgo = "panda";
   std::string segmentSizeFilePath = "contrib/dash/segmentSizes3.txt";
   
   bool shortGuardInterval = true;
@@ -135,16 +135,16 @@ main (int argc, char *argv[])
 
   /* Set up WAN link between server node and access point*/
   PointToPointHelper p2p;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("35Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("30ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("130ms"));
   NetDeviceContainer wanIpDevices;
   wanIpDevices = p2p.Install (serverNode, apNode);
 
   PointToPointHelper p2p2;
-  p2p2.SetDeviceAttribute ("DataRate", StringValue ("35Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p2.SetDeviceAttribute ("DataRate", StringValue ("100kb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p2.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p2.SetChannelAttribute ("Delay", StringValue ("30ms"));
+  p2p2.SetChannelAttribute ("Delay", StringValue ("130ms"));
   NetDeviceContainer wanIpDevices2;
   wanIpDevices2 = p2p2.Install (serverNode2, apNode);
 
@@ -332,7 +332,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfClients);
   //NS_LOG_UNCOND("SERVER1"<< serverAddress);
   //NS_LOG_UNCOND("SERVER2"<< serverAddress2);
-  //Simulator::Schedule(Seconds(10),&funcaoDoida,clientApps, clientHelper, serverAddress2, clients);
+  Simulator::Schedule(Seconds(10),&funcaoDoida,clientApps, clientHelper, serverAddress2, clients);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients);
   Simulator::Run ();
   Simulator::Destroy ();

@@ -40,9 +40,9 @@ std::string ToString(T val)
 using namespace ns3;
 
 static void
-funcaoDoida(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Address server2Address, std::vector <std::pair <Ptr<Node>, std::string> > clients, uint16_t n)
+funcaoDoida(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Address server2Address, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
-  clientHelper.Handover(clientApps, clients.at (n).first, server2Address);
+  clientHelper.Handover(clientApps, clients.at (0).first, server2Address);
 }
 
 void 
@@ -65,11 +65,11 @@ NS_LOG_COMPONENT_DEFINE ("dash-migrationExample");
 int
 main (int argc, char *argv[])
 {
-  uint16_t numberOfUeNodes = 4; // number of mobile devices
+  uint16_t numberOfUeNodes = 1; // number of mobile devices
   uint16_t numberOfEnbNodes = 1; // number of ENBs
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
-  uint32_t simulationId = 1;
+  uint32_t simulationId = 3;
   uint32_t numberOfServers = 3;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "contrib/dash/segmentSizes3.txt";
@@ -88,13 +88,9 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteUeNetDevice::DlEarfcn", UintegerValue (100));
   Config::SetDefault ("ns3::LteEnbNetDevice::DlEarfcn", UintegerValue (100));
   Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", UintegerValue (18100));
-  
+
   Config::SetDefault ("ns3::LteEnbNetDevice::DlBandwidth", UintegerValue (50));
   Config::SetDefault ("ns3::LteEnbNetDevice::UlBandwidth", UintegerValue (50));
-
-  Config::SetDefault("ns3::TcpSocket::SegmentSize", UintegerValue (1446));
-  Config::SetDefault("ns3::TcpSocket::SndBufSize", UintegerValue (524288));
-  Config::SetDefault("ns3::TcpSocket::RcvBufSize", UintegerValue (524288));
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();
@@ -117,21 +113,17 @@ main (int argc, char *argv[])
 
   // Create the Internet
   PointToPointHelper p2ph;
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("1Gb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", StringValue ("130ms"));
+  p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.01)));
+  /*NetDeviceContainer internetDevices;
+  for (uint i = 0; i < numberOfServers; i++)
+  {
+    internetDevices.Add(p2ph.Install (pgw,remoteHostContainer.Get (i)));  
+  }*/
   NetDeviceContainer server1 = p2ph.Install (remoteHost,pgw);
-
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
-  p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", StringValue ("50ms"));
   NetDeviceContainer server2 = p2ph.Install (remoteHost2,pgw);
-
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("1Mb/s")));
-  p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", StringValue ("200ms"));
   NetDeviceContainer server3 = p2ph.Install (remoteHost3,pgw);
-
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (server1);
@@ -267,6 +259,63 @@ main (int argc, char *argv[])
   mobility.Install (UeNodes);
   BuildingsHelper::Install (UeNodes);
 
+
+  // Usar o que esta inserido dentro do EPC Helper
+  /* Set up WAN link between server node and access point*/
+  //PointToPointHelper p2p;
+  //p2p.SetDeviceAttribute ("DataRate", StringValue ("100000kb/s")); // This must not be more than the maximum throughput in 802.11n
+  //p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  //p2p.SetChannelAttribute ("Delay", StringValue ("45ms"));
+  //NetDeviceContainer wanIpDevices;
+  //wanIpDevices = p2p.Install (serverNode, apNode);
+  /*
+  // create MAC layers 
+  WifiMacHelper wifiMac;
+   WLAN configuration 
+  Ssid ssid = Ssid ("network");
+  // Configure STAs for WLAN
+
+  wifiMac.SetType ("ns3::StaWifiMac",
+                    "Ssid", SsidValue (ssid));
+  NetDeviceContainer staDevices;
+  staDevices = wifiHelper.Install (wifiPhy, wifiMac, staContainer);
+
+  // Configure AP for WLAN
+  wifiMac.SetType ("ns3::ApWifiMac",
+                    "Ssid", SsidValue (ssid));
+  NetDeviceContainer apDevice;
+  apDevice = wifiHelper.Install (wifiPhy, wifiMac, apNode);
+
+
+
+  //Config::Set ("/NodeList//DeviceList//$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue (40));
+
+  // Determin WLAN devices (AP and STAs) 
+  NetDeviceContainer wlanDevices;
+  wlanDevices.Add (staDevices);
+  wlanDevices.Add (apDevice);
+
+  // Internet stack 
+  InternetStackHelper stack;
+  stack.Install (UeNodes);
+
+  // Assign IP addresses 
+  Ipv4AddressHelper address;
+
+  // IPs for WAN 
+  address.SetBase ("76.1.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer wanInterface = address.Assign (wanIpDevices);
+  Address serverAddress = Address(wanInterface.GetAddress (0));
+
+  // IPs for WLAN (STAs and AP) 
+  address.SetBase ("192.168.1.0", "255.255.255.0");
+  address.Assign (wlanDevices);
+
+  // Populate routing table 
+  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+  uint16_t port = 9;
+  */
+
   // Install LTE Devices to the nodes
   NetDeviceContainer enbLteDevs = lteHelper->InstallEnbDevice (EnbNodes);
   NetDeviceContainer ueLteDevs = lteHelper->InstallUeDevice (UeNodes);
@@ -289,105 +338,39 @@ main (int argc, char *argv[])
 
   uint16_t port= 9;
 
+  // if logging of the packets between AP---Server or AP and the STAs is wanted, these two lines can be activated
+
+  // p2p.EnablePcapAll ("p2p-", true);
+  // wifiPhy.EnablePcapAll ("wifi-", true);
+
+
+
   /* Install TCP Receiver on the access point */
   TcpStreamServerHelper serverHelper (port); //NS_LOG_UNCOND("dash Install 277");
-  ApplicationContainer serverApp = serverHelper.Install (remoteHostContainer); //NS_LOG_UNCOND("dash Install 278");
-  //ApplicationContainer serverApp2 = serverHelper.Install (remoteHost2);
-  //ApplicationContainer serverApp3 = serverHelper.Install (remoteHost3); 
+  ApplicationContainer serverApp = serverHelper.Install (remoteHost); //NS_LOG_UNCOND("dash Install 278");
+  ApplicationContainer serverApp2 = serverHelper.Install (remoteHost2); //NS_LOG_UNCOND("dash Install 279");
   serverApp.Start (Seconds (1.0));
-  //serverApp2.Start (Seconds (1.0));
-  //serverApp3.Start (Seconds (1.0));
-
-  std::vector <std::pair <Ptr<Node>, std::string> > clients_temp0;
-  std::vector <std::pair <Ptr<Node>, std::string> > clients_temp1;
-  std::vector <std::pair <Ptr<Node>, std::string> > clients_temp2;
-  for (uint i = 0; i < numberOfUeNodes; i++)
-    {
-      if(i<numberOfUeNodes/3)
-      {
-        clients_temp0.push_back(clients[i]);
-      }
-      else 
-        if(i<(2*numberOfUeNodes)/3)
-          {
-            clients_temp1.push_back(clients[i]);
-          }
-        else
-          {
-            clients_temp2.push_back(clients[i]);
-          }
-    }
-
+  serverApp2.Start (Seconds (1.0));
   /* Install TCP/UDP Transmitter on the station */
   TcpStreamClientHelper clientHelper (server1Address, port);
   clientHelper.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
   clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfUeNodes));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
-  clientHelper.SetAttribute ("ServerId", UintegerValue (0));
-  ApplicationContainer clientApps = clientHelper.Install (clients_temp0);
-
-  //TcpStreamClientHelper clientHelper2 (server2Address, port);
-  clientHelper.SetAttribute ("RemoteAddress", AddressValue (server2Address));
-  clientHelper.SetAttribute ("RemotePort", UintegerValue (port));
-  clientHelper.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
-  clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
-  clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfUeNodes));
-  clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
-  clientHelper.SetAttribute ("ServerId", UintegerValue (1));
-  clientApps = clientHelper.Install (clients_temp1);
-
-  //TcpStreamClientHelper clientHelper3 (server3Address, port);
-  clientHelper.SetAttribute ("RemoteAddress", AddressValue (server3Address));
-  clientHelper.SetAttribute ("RemotePort", UintegerValue (port));
-  clientHelper.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
-  clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
-  clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfUeNodes));
-  clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
-  clientHelper.SetAttribute ("ServerId", UintegerValue (2));
-  clientApps = clientHelper.Install (clients_temp2);
-
+  ApplicationContainer clientApps = clientHelper.Install (clients);
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
-      double startTime = 2.0;
+      double startTime = 2.0 + ((i * 3) / 100.0);
       clientApps.Get (i)->SetStartTime (Seconds (startTime));
-    }/*
-  for (uint i = 0; i < clientApps2.GetN (); i++)
-    {
-      double startTime = 2.0 + ((i * 3) / 100.0);
-      clientApps2.Get (i)->SetStartTime (Seconds (startTime));
     }
-  for (uint i = 0; i < clientApps3.GetN (); i++)
-    {
-      double startTime = 2.0 + ((i * 3) / 100.0);
-      clientApps3.Get (i)->SetStartTime (Seconds (startTime));
-    }*/
 
-  Ptr<FlowMonitor> flowMonitor;
-  FlowMonitorHelper flowHelper;
-  flowMonitor = flowHelper.InstallAll();
+  AnimationInterface anim ("animation.xml");
 
   NS_LOG_INFO ("Run Simulation.");
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfUeNodes);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,UeNodes, numberOfUeNodes);
-  //Simulator::Schedule(Seconds(1),&funcaoDoida,clientApps, clientHelper, server2Address, clients,0);
-  //Simulator::Schedule(Seconds(1.05),&funcaoDoida,clientApps, clientHelper, server2Address, clients,9);
-  //Simulator::Schedule(Seconds(1.1),&funcaoDoida,clientApps, clientHelper, server2Address, clients,10);
-  //Simulator::Schedule(Seconds(1.15),&funcaoDoida,clientApps, clientHelper, server2Address, clients,11);
-  //Simulator::Schedule(Seconds(1.2),&funcaoDoida,clientApps, clientHelper, server2Address, clients,12);
-  //Simulator::Schedule(Seconds(1.25),&funcaoDoida,clientApps, clientHelper, server2Address, clients,13);
-  //Simulator::Schedule(Seconds(1.3),&funcaoDoida,clientApps, clientHelper, server2Address, clients,14);
-  //Simulator::Schedule(Seconds(1.35),&funcaoDoida,clientApps, clientHelper, server2Address, clients,15);
-  //Simulator::Schedule(Seconds(1.4),&funcaoDoida,clientApps, clientHelper, server3Address, clients,16);
-  //Simulator::Schedule(Seconds(1.45),&funcaoDoida,clientApps, clientHelper, server3Address, clients,17);
-  //Simulator::Schedule(Seconds(1.5),&funcaoDoida,clientApps, clientHelper, server3Address, clients,18);
-  //Simulator::Schedule(Seconds(1.55),&funcaoDoida,clientApps, clientHelper, server3Address, clients,19);
-  //Simulator::Schedule(Seconds(1.6),&funcaoDoida,clientApps, clientHelper, server3Address, clients,20);
-  //Simulator::Schedule(Seconds(1.65),&funcaoDoida,clientApps, clientHelper, server3Address, clients,21);
-  //Simulator::Schedule(Seconds(1.7),&funcaoDoida,clientApps, clientHelper, server3Address, clients,22);
-  //Simulator::Schedule(Seconds(1.75),&funcaoDoida,clientApps, clientHelper, server3Address, clients,23);
+  Simulator::Schedule(Seconds(10),&funcaoDoida,clientApps, clientHelper, server2Address, clients);
   Simulator::Run ();
-  flowMonitor->SerializeToXmlFile("teste.xml", true, true);
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");
 
