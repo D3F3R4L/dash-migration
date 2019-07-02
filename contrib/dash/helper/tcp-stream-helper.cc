@@ -64,6 +64,24 @@ TcpStreamServerHelper::Install (NodeContainer c) const
   return apps;
 }
 
+double
+TcpStreamServerHelper::serverThroughput(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  double i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamServer> ()->serverThroughput();
+  return i;
+}
+
+uint32_t
+TcpStreamServerHelper::NumberOfClients(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  double i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamServer> ()->GetNumberOfClients();
+  return i;
+}
+
 Ptr<Application>
 TcpStreamServerHelper::InstallPriv (Ptr<Node> node) const
 { //NS_LOG_UNCOND("serverhelper InstallPriv 69");
@@ -128,12 +146,39 @@ TcpStreamClientHelper::GetTotalBufferUnderrunTime(ApplicationContainer clientApp
   return t;
 }
 
-uint16_t
+uint64_t
 TcpStreamClientHelper::GetNumbersOfBufferUnderrun(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  uint64_t i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->GetBufferUnderrunCount();
+  return i;
+}
+
+double
+TcpStreamClientHelper::GetThroughput(ApplicationContainer clientApps, Ptr<Node> node)
 { 
   double i;
   Ptr<Application> app = node->GetApplication(0);
-  i=app->GetObject<TcpStreamClient> ()->GetBufferUnderrunCount();
+  i=app->GetObject<TcpStreamClient> ()->GetThroughput();
+  return i;
+}
+
+double
+TcpStreamClientHelper::GetPlaybakStartTime(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  double i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->GetPlaybackStart();
+  return i;
+}
+
+std::string
+TcpStreamClientHelper::GetServerAddress(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  std::string i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->GetServerAddress();
   return i;
 }
 

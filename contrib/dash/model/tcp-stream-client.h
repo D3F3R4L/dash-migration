@@ -88,8 +88,10 @@ public:
   bool check ();
   void SetHandover (Address ip);
   double GetBufferUnderrunTotalTime();
-  uint16_t GetBufferUnderrunCount();
-  double CalculateThroughput ();
+  uint64_t GetBufferUnderrunCount();
+  std::string GetServerAddress();
+  double GetThroughput();
+  double GetPlaybackStart();
 
 protected:
   virtual void DoDispose (void);
@@ -231,7 +233,7 @@ private:
    * - arrival time of packet
    * - size of packet
    */
-  void LogThroughput (double packetSize, Address from);
+  void LogThroughput (double packetSize);
   /*
    * \brief Log information about playback process
    *
@@ -285,12 +287,12 @@ private:
   int64_t m_highestRepIndex; //!< This is the index of the highest representation
   uint64_t m_segmentDuration; //!< The duration of a segment in microseconds
   bool handover;
-  uint16_t bufferUnderrunCount;
+  uint64_t bufferUnderrunCount;
   double underrunBegin;
   double bufferUnderrunTotalTime;
   int64_t throughput;
-  int64_t lastbyte;
-  int64_t totalbytes;
+  double playbackStart;
+  int64_t totalBytes;
 
   std::ofstream adaptationLog; //!< Output stream for logging adaptation information
   std::ofstream downloadLog; //!< Output stream for logging download information

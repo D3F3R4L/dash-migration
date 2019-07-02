@@ -35,8 +35,21 @@
 #include <ns3/core-module.h>
 #include "tcp-stream-client.h"
 #include "ns3/trace-source-accessor.h"
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 namespace ns3 {
+
+template <typename T>
+std::string ToString (T val)
+{
+  std::stringstream stream;
+  stream << val;
+  return stream.str ();
+}
 
 NS_LOG_COMPONENT_DEFINE ("TcpStreamServerApplication");
 
@@ -49,6 +62,11 @@ TcpStreamServer::GetTypeId (void)
     .SetParent<Application> ()
     .SetGroupName ("Applications")
     .AddConstructor<TcpStreamServer> ()
+    .AddAttribute ("RemoteAddress",
+                   "The destination Address of the outbound packets",
+                   AddressValue (),
+                   MakeAddressAccessor (&TcpStreamServer::serverIp),
+                   MakeAddressChecker ())
     .AddAttribute ("Port", "Port on which we listen for incoming packets.",
                    UintegerValue (9),
                    MakeUintegerAccessor (&TcpStreamServer::m_port),
@@ -61,7 +79,8 @@ TcpStreamServer::TcpStreamServer ()
 {
   NS_LOG_FUNCTION (this);
   totalBytesSend = 0;
-  startSend = 0;
+  MME = 0;
+  n=3;
 }
 
 TcpStreamServer::~TcpStreamServer ()
@@ -100,6 +119,7 @@ TcpStreamServer::StartApplication (void)
       m_socket6->Bind (local6);
       m_socket->Listen ();
     }
+  
 
   // Accept connection requests from remote hosts.
   m_socket->SetAcceptCallback (MakeNullCallback<bool, Ptr< Socket >, const Address &> (),
@@ -107,6 +127,7 @@ TcpStreamServer::StartApplication (void)
   m_socket->SetCloseCallbacks (
     MakeCallback (&TcpStreamServer::HandlePeerClose, this),
     MakeCallback (&TcpStreamServer::HandlePeerError, this));
+  InitializeLogFiles (GetServerAddress());
 }
 
 void
@@ -146,15 +167,7 @@ void
 TcpStreamServer::HandleSend (Ptr<Socket> socket, uint32_t txSpace)
 {
   Address from;
-  Time now = Simulator::Now ();
   socket->GetPeerName (from);
-  if(now.GetSeconds()>= (startSend+2))
-  {
-    serverThroughput(totalBytesSend);
-  }
-  //NS_LOG_UNCOND(m_callbackData [from].packetSizeToReturn);
-  //std::cout << Simulator::Now ().GetSeconds () << "s: \t" << totalBytesSend << " send" << std::endl;
-  //std::cout << socket->GetTxAvailable () << "tx" << socket->GetRxAvailable ()<< "Rx" << std::endl;
   // look up values for the connected client and whose values are stored in from
   if (m_callbackData [from].currentTxBytes == m_callbackData [from].packetSizeToReturn)
     {
@@ -241,14 +254,51 @@ TcpStreamServer::GetCommand (Ptr<Packet> packet)
 }
 
 double
-TcpStreamServer::serverThroughput (double totalBytesSend)
+TcpStreamServer::serverThroughput ()
 {
-  Time now = Simulator::Now ();                                        /* Return the simulator's virtual time. */
-  double Throughput = totalBytesSend * (double) 8 / ((now.GetSeconds()-startSend)*1e5);     /* Convert Application RX Packets to MBits. */
-  //std::cout << now.GetSeconds () << "s: \t" << Throughput << " server" << std::endl;
-  startSend= now.GetSeconds ();
+  Time now = Simulator::Now ();
+  double Throughput = totalBytesSend * (double) 8 / 1e6;
+  std::cout << now.GetSeconds () << "s: \t" << Throughput << " Mbit/s" << std::endl;
+  MME = MME + (2*(Throughput-MME)/(n+1));
+  std::cout << "MME: \t" << MME << " Mbit/s" << std::endl;
   totalBytesSend=0;
+  LogThroughput (Throughput, MME);
   return Throughput;
+}
+
+std::string
+TcpStreamServer::GetServerAddress()
+{
+  std::string a = ToString(Ipv4Address::ConvertFrom (serverIp));
+  return a;
+}
+
+uint32_t
+TcpStreamServer::GetNumberOfClients()
+{
+  uint32_t a = m_connectedClients.size ();
+  return a;
+}
+
+void
+TcpStreamServer::LogThroughput (double packetSize, double MME)
+{
+  NS_LOG_FUNCTION (this);
+  throughputLog << std::setfill (' ') << std::setw (0) << Simulator::Now ().GetMicroSeconds ()  / (double) 1000000 << ";"
+                << std::setfill (' ') << std::setw (0) << packetSize << ";"
+                << std::setfill (' ') << std::setw (0) << MME << ";\n";
+  throughputLog.flush ();
+}
+
+void  
+TcpStreamServer::InitializeLogFiles (std::string serverId)
+{
+  NS_LOG_FUNCTION (this);
+
+  std::string tLog = "dash-log-files/festive/4/throughputServer_" + serverId+ "_" +"Log.csv";
+  throughputLog.open (tLog.c_str ());
+  throughputLog << "Time_Now;MBytes_Received;MME\n";
+  throughputLog.flush ();
 }
 
 } // Namespace ns3

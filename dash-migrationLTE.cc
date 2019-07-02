@@ -39,6 +39,30 @@ std::string ToString(T val)
 
 using namespace ns3;
 
+void 
+throughput(Ptr<FlowMonitor> flowMonitor,Ptr<Ipv4FlowClassifier> classifier)
+{
+  std::map<FlowId, FlowMonitor::FlowStats> stats = flowMonitor->GetFlowStats ();
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
+    {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (iter->first);
+
+          NS_LOG_UNCOND("Flow ID: " << iter->first << " Src Addr " << t.sourceAddress << " Dst Addr " << t.destinationAddress);
+          NS_LOG_UNCOND("Tx Packets = " << iter->second.txPackets);
+          NS_LOG_UNCOND("Tx Bytes = " << iter->second.txBytes);
+          //NS_LOG_UNCOND("Sum jitter = " << iter->second.jitterSum);
+          //NS_LOG_UNCOND("Delay Sum = " << iter->second.delaySum);
+          //NS_LOG_UNCOND("Lost Packet = " << iter->second.lostPackets);
+          NS_LOG_UNCOND("Rx Bytes = " << iter->second.rxBytes);
+          NS_LOG_UNCOND("Rx Packets = " << iter->second.rxPackets);
+          //NS_LOG_UNCOND("timeLastRxPacket = " << iter->second.timeLastRxPacket.GetSeconds());
+          //NS_LOG_UNCOND("timefirstTxPacket = " << iter->second.timeFirstTxPacket.GetSeconds());
+          NS_LOG_UNCOND("Throughput: " << iter->second.rxBytes * 8.0 / (iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds()) / 1000/1000 << " Mbps");
+          NS_LOG_UNCOND("Packet loss %= " << ((iter->second.txPackets-iter->second.rxPackets)*1.0)/iter->second.txPackets);
+    }
+  Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
+}
+
 static void
 funcaoDoida(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Address server2Address, std::vector <std::pair <Ptr<Node>, std::string> > clients, uint16_t n)
 {
@@ -65,7 +89,7 @@ NS_LOG_COMPONENT_DEFINE ("dash-migrationExample");
 int
 main (int argc, char *argv[])
 {
-  uint16_t numberOfUeNodes = 4; // number of mobile devices
+  uint16_t numberOfUeNodes = 24; // number of mobile devices
   uint16_t numberOfEnbNodes = 1; // number of ENBs
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
@@ -105,6 +129,7 @@ main (int argc, char *argv[])
 
   // parse again so you can override default values from the command line
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
+  
 
    // Create a single RemoteHost
   NodeContainer remoteHostContainer;
@@ -119,17 +144,17 @@ main (int argc, char *argv[])
   PointToPointHelper p2ph;
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", StringValue ("130ms"));
+  p2ph.SetChannelAttribute ("Delay", StringValue ("50ms"));
   NetDeviceContainer server1 = p2ph.Install (remoteHost,pgw);
 
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", StringValue ("50ms"));
+  p2ph.SetChannelAttribute ("Delay", StringValue ("60ms"));
   NetDeviceContainer server2 = p2ph.Install (remoteHost2,pgw);
 
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("1Mb/s")));
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", StringValue ("200ms"));
+  p2ph.SetChannelAttribute ("Delay", StringValue ("30ms"));
   NetDeviceContainer server3 = p2ph.Install (remoteHost3,pgw);
 
   Ipv4AddressHelper ipv4h;
@@ -350,7 +375,7 @@ main (int argc, char *argv[])
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
       double startTime = 2.0;
-      clientApps.Get (i)->SetStartTime (Seconds (startTime));
+      clientApps.Get (i)->SetStartTime (Seconds (startTime+(i/100)));
     }/*
   for (uint i = 0; i < clientApps2.GetN (); i++)
     {
@@ -366,7 +391,7 @@ main (int argc, char *argv[])
   Ptr<FlowMonitor> flowMonitor;
   FlowMonitorHelper flowHelper;
   flowMonitor = flowHelper.InstallAll();
-
+  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowHelper.GetClassifier ());
   NS_LOG_INFO ("Run Simulation.");
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfUeNodes);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,UeNodes, numberOfUeNodes);
@@ -386,8 +411,9 @@ main (int argc, char *argv[])
   //Simulator::Schedule(Seconds(1.65),&funcaoDoida,clientApps, clientHelper, server3Address, clients,21);
   //Simulator::Schedule(Seconds(1.7),&funcaoDoida,clientApps, clientHelper, server3Address, clients,22);
   //Simulator::Schedule(Seconds(1.75),&funcaoDoida,clientApps, clientHelper, server3Address, clients,23);
+  //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
   Simulator::Run ();
-  flowMonitor->SerializeToXmlFile("teste.xml", true, true);
+  flowMonitor->SerializeToXmlFile ("results.xml" , true, true );
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");
 

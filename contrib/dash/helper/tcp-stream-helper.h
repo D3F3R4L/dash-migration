@@ -86,6 +86,9 @@ public:
    */
   ApplicationContainer Install (NodeContainer c) const;
 
+  double serverThroughput(ApplicationContainer clientApps, Ptr<Node> node);
+  uint32_t NumberOfClients(ApplicationContainer clientApps, Ptr<Node> node);
+
 private:
   /**
    * Install an ns3::TcpStreamServer on the node configured with all the
@@ -156,7 +159,13 @@ public:
 
   double GetTotalBufferUnderrunTime(ApplicationContainer clientApps, Ptr<Node> node);
 
-  uint16_t GetNumbersOfBufferUnderrun(ApplicationContainer clientApps, Ptr<Node> node);
+  uint64_t GetNumbersOfBufferUnderrun(ApplicationContainer clientApps, Ptr<Node> node);
+
+  double GetThroughput(ApplicationContainer clientApps, Ptr<Node> node);
+
+  double GetPlaybakStartTime(ApplicationContainer clientApps, Ptr<Node> node);
+
+  std::string GetServerAddress(ApplicationContainer clientApps, Ptr<Node> node);
 
 private:
   /**

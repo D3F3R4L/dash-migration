@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 #include "ns3/log.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
@@ -141,7 +142,7 @@ TcpStreamClient::Controller (controllerEvent event)
             {
               /*  e_pb  */
               controllerEvent ev = playbackFinished; //NS_LOG_UNCOND("playback finished");
-               std::cerr << "FIRST CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+               //std::cerr << "FIRST CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
               Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
             }
           else
@@ -166,7 +167,7 @@ TcpStreamClient::Controller (controllerEvent event)
       else if (event == playbackFinished && m_currentPlaybackIndex < m_lastSegmentIndex)
         {
           /*  e_pb  */
-           std::cerr << "SECOND CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
+           //std::cerr << "SECOND CASE. Client " << m_clientId << " " << Simulator::Now ().GetSeconds () << "\n";
           PlaybackHandle (); //NS_LOG_UNCOND("playback finished antes do final");
           controllerEvent ev = playbackFinished;
           Simulator::Schedule (MicroSeconds (m_videoData.segmentDuration), &TcpStreamClient::Controller, this, ev);
@@ -348,11 +349,12 @@ TcpStreamClient::HandleRead (Ptr<Socket> socket)
     {
       packetSize = packet->GetSize ();
       m_bytesReceived += packetSize;
+      totalBytes += packetSize;
       if (m_bytesReceived == m_videoData.segmentSize.at (m_currentRepIndex).at (m_segmentCounter))
         {
           serverIpv4=from;
+          NS_LOG_UNCOND(m_bytesReceived);
           m_transmissionEndReceivingSegment = Simulator::Now ().GetMicroSeconds ();
-          LogThroughput (CalculateThroughput (), from);
           SegmentReceivedHandle ();
         }
     }
@@ -453,10 +455,16 @@ TcpStreamClient::PlaybackHandle ()
           bufferUnderrunTotalTime = bufferUnderrunTotalTime + delta;
           bufferUnderrunLog << std::setfill (' ') << std::setw (0) << timeNow / (double)1000000 << ";";
           bufferUnderrunLog << std::setfill (' ') << std::setw (0) << delta << ";";
-          bufferUnderrunLog << std::setfill (' ') << std::setw (0) << bufferUnderrunTotalTime << ";\n";
+          bufferUnderrunLog << std::setfill (' ') << std::setw (0) << bufferUnderrunTotalTime << ";";
+          bufferUnderrunLog << std::setfill (' ') << std::setw (0) << Ipv4Address::ConvertFrom (m_peerAddress) << ";\n";
           bufferUnderrunLog.flush ();
         }
       m_playbackData.playbackStart.push_back (timeNow);
+      if(m_currentPlaybackIndex==0)
+      {
+        playbackStart=timeNow  / (double)1000000;
+        NS_LOG_UNCOND(playbackStart);
+      }
       LogPlayback ();
       m_segmentsInBuffer--;
       m_currentPlaybackIndex++;
@@ -504,10 +512,35 @@ TcpStreamClient::GetBufferUnderrunTotalTime()
   return bufferUnderrunTotalTime;
 }
 
-uint16_t
+uint64_t
 TcpStreamClient::GetBufferUnderrunCount()
 {
+
   return bufferUnderrunCount;
+}
+
+double
+TcpStreamClient::GetPlaybackStart()
+{
+  return playbackStart;
+}
+
+double
+TcpStreamClient::GetThroughput()
+{
+    Time now = Simulator::Now ();
+    double Throughput = totalBytes * (double) 8 / 1e6;
+    totalBytes=0;
+    LogThroughput (Throughput);
+    std::cout << now.GetSeconds () << "s: \t" << Throughput << " Mbit/s" << std::endl;
+    return (Throughput);
+}
+
+std::string
+TcpStreamClient::GetServerAddress()
+{
+  std::string a = ToString(Ipv4Address::ConvertFrom (m_peerAddress));
+  return a;
 }
 
 void
@@ -547,6 +580,8 @@ TcpStreamClient::HandoverApplication (Address ip)
   NS_LOG_UNCOND("client HandoverApplication");
   NS_LOG_UNCOND(m_segmentCounter);
 
+  bufferUnderrunCount=0;
+  bufferUnderrunTotalTime=0;
   controllerState temp = state;
   m_peerAddress = ip;
   state = terminal;
@@ -598,18 +633,6 @@ TcpStreamClient::check ()
   }
 }
 
- double
- TcpStreamClient::CalculateThroughput ()
- {
-    Time now = Simulator::Now ();
-    double begin = m_transmissionStartReceivingSegment / (double)1000000;
-    double end =  m_transmissionEndReceivingSegment / (double)1000000;                                         /* Return the simulator's virtual time. */
-    double Throughput = m_bytesReceived * (double) 8 / ((end-begin)*1000*1000);     /* Convert Application RX Packets to MBits. */
-    std::cout << now.GetSeconds () << "s: \t" << Throughput << " Mbit/s" << std::endl;
-    return (Throughput);
- }
-
-
 template <typename T>
 void
 TcpStreamClient::PreparePacket (T & message)
@@ -646,12 +669,12 @@ TcpStreamClient::ConnectionFailed (Ptr<Socket> socket)
 }
 
 void
-TcpStreamClient::LogThroughput (double packetSize, Address from)
+TcpStreamClient::LogThroughput (double packetSize)
 {
   NS_LOG_FUNCTION (this);
   throughputLog << std::setfill (' ') << std::setw (0) << Simulator::Now ().GetMicroSeconds ()  / (double) 1000000 << ";"
                 << std::setfill (' ') << std::setw (0) << packetSize << ";"
-                << std::setfill (' ') << std::setw (0) << InetSocketAddress::ConvertFrom (from).GetIpv4 () << ";\n";
+                << std::setfill (' ') << std::setw (0) << Ipv4Address::ConvertFrom (m_peerAddress) << ";\n";
   throughputLog.flush ();
 }
 
@@ -734,7 +757,7 @@ TcpStreamClient::InitializeLogFiles (std::string simulationId, std::string clien
 
   std::string buLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "bufferUnderrunLog.csv";
   bufferUnderrunLog.open (buLog.c_str ());
-  bufferUnderrunLog << ("Buffer_Underrun_Started_At;Until;Buffer_Underrun_Duration;bufferUnderrunTotalTime \n");
+  bufferUnderrunLog << ("Buffer_Underrun_Started_At;Until;Buffer_Underrun_Duration;bufferUnderrunTotalTime;Server_Address \n");
   bufferUnderrunLog.flush ();
 }
 

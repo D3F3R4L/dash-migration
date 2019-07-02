@@ -25,6 +25,8 @@
 #include "ns3/address.h"
 #include "ns3/traced-callback.h"
 #include <map>
+#include <iostream>
+#include <fstream>
 #include "ns3/random-variable-stream.h"
 
 namespace ns3 {
@@ -64,6 +66,9 @@ public:
    * \brief Get the type ID.
    * \return the object TypeId
    */
+  double serverThroughput ();
+  std::string GetServerAddress();
+  uint32_t GetNumberOfClients();
   static TypeId GetTypeId (void);
   TcpStreamServer ();
   virtual ~TcpStreamServer ();
@@ -117,6 +122,9 @@ private:
   void HandlePeerClose (Ptr<Socket> socket);
   void HandlePeerError (Ptr<Socket> socket);
 
+  void LogThroughput (double packetSize, double MME);
+  void InitializeLogFiles ( std::string serverId);
+
   /**
    * \brief Deserialize what the client has sent us.
    * \param packet the data the client has sent us
@@ -124,7 +132,6 @@ private:
    */
   int64_t GetCommand (Ptr<Packet> packet);
 
-  double serverThroughput (double totalBytesSend);
 
   uint16_t m_port; //!< Port on which we listen for incoming packets.
   Ptr<Socket> m_socket; //!< IPv4 Socket
@@ -132,7 +139,11 @@ private:
   std::map <Address, callbackData> m_callbackData; //!< With this it is possible to access the currentTxBytes, the packetSizeToReturn and the send boolean through the from value of the client.
   std::vector<Address> m_connectedClients; //!< Vector which holds the list of currently connected clients.
   double totalBytesSend;
-  double startSend; 
+  double MME;
+  uint16_t n; 
+  Address serverIp;
+
+  std::ofstream throughputLog;
 
 
 };
