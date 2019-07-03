@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <sstream>
 #include <iomanip>
+#include <vector>
+#include <string>
 
 template <typename T>
 std::string ToString(T val)
@@ -51,6 +53,12 @@ double StartMMESV2=0;
 double StartMMESV3=0;
 double StartMMECloud=0;
 uint16_t n=3;
+uint16_t MaxClientsSV=15;
+std::vector <uint32_t> SClients {0,0,0,0};
+Address server1Address;
+Address server2Address;
+Address server3Address;
+Address cloudAddress;
 
 std::ofstream StallsLog;
 std::ofstream RebufferLog;
@@ -298,34 +306,160 @@ execute(const char* cmd)
         if (result.size() > 0){
     result.resize(result.size()-1);
     }
+    NS_LOG_UNCOND(result);
     return result;
 }
 
+std::vector <std::string>
+split(const char *phrase, std::string delimiter){
+    std::vector <std::string> list;
+    std::string s = ToString (phrase);
+    size_t pos = 0;
+    std::string token;
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+        token = s.substr(0, pos);
+        list.push_back(token);
+        s.erase(0, pos + delimiter.length());
+    }
+    list.push_back(s);
+    return list;
+}
+
 void
-politica(std::string dir)
+getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
-    std::string filename = "python3 /home/derian/AHP/AHP.py " + dir;
-    //std::string command = "python3 ";
-    std::string bestSv = execute(filename.c_str());
-    //command += filename;
-    //system(command.c_str());
-    if (bestSv=="1.0.0.1")
+  for (uint j = 0; j < servers.GetN(); j++)
+  {
+    SClients[j]=serverHelper.NumberOfClients(serverApp, servers.Get(j));
+    NS_LOG_UNCOND(SClients[j]);
+  }
+  Simulator::Schedule(Seconds(1),&getClientsOnServer,serverApp, serverHelper,servers);
+}
+
+void
+politica(std::string dir,ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
+{
+  std::string filename = "python3 /home/derian/AHP/AHP.py " + dir;
+  std::string bestSv = execute(filename.c_str());
+  std::vector <std::string> BestServers ;
+  BestServers = split(bestSv.c_str(), " ");
+
+  for (uint i = 0; i < numberOfClients; i++)
+  {
+    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+    if(ip=="1.0.0.1")
     {
-      NS_LOG_UNCOND("Funciona");
+      switch(BestServers[0].at(0))
+      {
+        case '1':
+          break;
+        case '2':
+          if (SClients[1]<MaxClientsSV)
+          {
+            SClients[1]=SClients[1]+1;
+            ServerHandover(clientApps, clientHelper, server2Address, clients,i);
+            break;
+          }
+        case '3':
+          if (SClients[2]<MaxClientsSV)
+          {
+            SClients[2]=SClients[2]+1;
+            ServerHandover(clientApps, clientHelper, server3Address, clients,i);
+            break;
+          }
+        default:
+          ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
+          break;
+      }
     }
-    if (bestSv=="2.0.0.1")
+    else
     {
-      NS_LOG_UNCOND("Funciona");
+      if(ip=="2.0.0.1")
+      {
+        switch(BestServers[0].at(0))
+        {
+          case '2':
+            break;
+          case '1':
+            if (SClients[0]<MaxClientsSV)
+            {
+              SClients[0]=SClients[0]+1;
+              ServerHandover(clientApps, clientHelper,server1Address, clients,i);
+              break;
+            }
+          case '3':
+            if (SClients[2]<MaxClientsSV)
+            {
+              SClients[2]=SClients[2]+1;
+              ServerHandover(clientApps, clientHelper, server2Address, clients,i);
+              break;
+            }
+          default:
+            ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
+            break;
+        }
+      }
+      else
+      {
+        if(ip=="3.0.0.1")
+        {
+          switch(BestServers[0].at(0))
+          {
+            case '3':
+              break;
+            case '1':
+              if (SClients[0]<MaxClientsSV)
+              {
+                SClients[0]=SClients[0]+1;
+                ServerHandover(clientApps, clientHelper, server1Address, clients,i);
+                break;
+              }
+            case '2':
+              if (SClients[1]<MaxClientsSV)
+              {
+                SClients[1]=SClients[1]+1;
+                ServerHandover(clientApps, clientHelper, server2Address, clients,i);
+                break;
+              }
+            default:
+              ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
+              break;
+          }
+        }
+        else
+        {
+          switch(BestServers[0].at(0))
+          {
+            case '1':
+              if (SClients[0]<MaxClientsSV)
+              {
+                SClients[0]=SClients[0]+1;
+                ServerHandover(clientApps, clientHelper, server1Address, clients,i);
+                break;
+              }
+            case '2':
+              if (SClients[1]<MaxClientsSV)
+              {
+                SClients[1]=SClients[1]+1;
+                ServerHandover(clientApps, clientHelper, server2Address, clients,i);
+                break;
+              }
+            case '3':
+              if (SClients[2]<MaxClientsSV)
+              {
+                SClients[2]=SClients[2]+1;
+                ServerHandover(clientApps, clientHelper, server3Address, clients,i);
+                break;
+              }
+            default:
+              ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
+              break;
+          }
+        }
+      }
     }
-    if (bestSv=="3.0.0.1")
-    {
-      NS_LOG_UNCOND("Funciona");
-    }
-    if (bestSv=="4.0.0.1")
-    {
-      NS_LOG_UNCOND("Funciona");
-    }
-    Simulator::Schedule(Seconds(2),&politica,dir);
+  }
+  Simulator::Schedule(Seconds(1),&politica,dir,clientApps,clientHelper,clients, numberOfClients);
 }
 
 int
@@ -479,10 +613,10 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer wanInterface4 = address4.Assign (wanIpDevices4);
   
 
-  Address server1Address = Address(wanInterface.GetAddress (0));
-  Address server2Address = Address(wanInterface2.GetAddress (0));
-  Address server3Address = Address(wanInterface3.GetAddress (0));
-  Address cloudAddress = Address(wanInterface4.GetAddress (0));
+server1Address = Address(wanInterface.GetAddress (0));
+server2Address = Address(wanInterface2.GetAddress (0));
+server3Address = Address(wanInterface3.GetAddress (0));
+cloudAddress = Address(wanInterface4.GetAddress (0));
 
   /* IPs for WLAN (STAs and AP) */
   address.SetBase ("192.168.1.0", "255.255.255.0");
@@ -700,10 +834,10 @@ main (int argc, char *argv[])
       clientApps2.Get (i)->SetStartTime (Seconds (startTime)); 
     }*/
 
-  Ptr<FlowMonitor> flowMonitor;
-  FlowMonitorHelper flowHelper;
-  flowMonitor = flowHelper.InstallAll();
-  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowHelper.GetClassifier ());
+  //Ptr<FlowMonitor> flowMonitor;
+  //FlowMonitorHelper flowHelper;
+  //flowMonitor = flowHelper.InstallAll();
+  //Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowHelper.GetClassifier ());
 
   InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfClients),ToString(simulationId));
 
@@ -711,7 +845,7 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfClients);
   //NS_LOG_UNCOND("SERVER1"<< serverAddress);
   //NS_LOG_UNCOND("SERVER2"<< serverAddress2);
-  //Simulator::Schedule(Seconds(1),&ServerHandover,clientApps, clientHelper, server2Address, clients,0);
+  //Simulator::Schedule(Seconds(5),&ServerHandover,clientApps, clientHelper, server2Address, clients,0);
   //Simulator::Schedule(Seconds(1.05),&ServerHandover,clientApps, clientHelper, server2Address, clients,1);
   //Simulator::Schedule(Seconds(1.1),&ServerHandover,clientApps, clientHelper, server2Address, clients,2);
   //Simulator::Schedule(Seconds(1.15),&ServerHandover,clientApps, clientHelper, server2Address, clients,3);
@@ -721,15 +855,16 @@ main (int argc, char *argv[])
   //Simulator::Schedule(Seconds(1.1),&ServerHandover,clientApps, clientHelper, server3Address, clients,7);
   //Simulator::Schedule(Seconds(1.15),&ServerHandover,clientApps, clientHelper, server3Address, clients,8);
   //Simulator::Schedule(Seconds(1.2),&ServerHandover,clientApps, clientHelper, server3Address, clients,9);
+  Simulator::Schedule(Seconds(2),&getClientsOnServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
-  Simulator::Schedule(Seconds(4),&politica,dirTmp);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients, numberOfClients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(4),&politica,dirTmp,clientApps,clientHelper,clients, numberOfClients);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients);
   Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients, numberOfClients);
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
   Simulator::Run ();
-  flowMonitor->SerializeToXmlFile ("results.xml" , true, true );
+  //flowMonitor->SerializeToXmlFile ("results.xml" , true, true );
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");
 
