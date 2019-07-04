@@ -142,6 +142,8 @@ private:
   double MME;
   uint16_t n; 
   Address serverIp;
+  std::string directory;
+  uint16_t simulationId;
 
   std::ofstream throughputLog;
 

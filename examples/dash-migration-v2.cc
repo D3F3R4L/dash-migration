@@ -63,6 +63,7 @@ Address cloudAddress;
 std::ofstream StallsLog;
 std::ofstream RebufferLog;
 std::ofstream StartTimeLog;
+std::ofstream ServerScoreLog;
 
 void
 LogStall (uint16_t sv1,uint16_t sv2,uint16_t sv3,uint16_t cloud)
@@ -274,6 +275,11 @@ InitializeLogFiles (std::string dashLogDirectory, std::string m_algoName,std::st
   StartTimeLog << "SV1_PlaybackStartTime;SV1_PlaybackStartTime_MME;SV2_PlaybackStartTime;SV2_PlaybackStartTime_MME;SV3_PlaybackStartTime;SV3_PlaybackStartTime_MME;Cloud_PlaybackStartTime;Cloud_PlaybackStartTime_MME\n";
   StartTimeLog.flush ();
 
+  std::string SsLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "ServerScores.csv";
+  ServerScoreLog.open (SsLog.c_str ());
+  ServerScoreLog << "SV1_Score;SV2_Score;SV3_Score;Cloud_Score;\n";
+  ServerScoreLog.flush ();
+
 }
 
 void 
@@ -398,7 +404,7 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 1;
-  uint32_t numberOfClients = 15;
+  uint32_t numberOfClients = 4;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
@@ -643,7 +649,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   servers.Add(serverNode2);
   servers.Add(serverNode3);
   servers.Add(cloudNode);
-  TcpStreamServerHelper serverHelper (port); //NS_LOG_UNCOND("dash Install 277");
+  TcpStreamServerHelper serverHelper (port,simulationId,dirTmp); //NS_LOG_UNCOND("dash Install 277");
   serverHelper.SetAttribute ("RemoteAddress", AddressValue (server1Address));
   ApplicationContainer serverApp = serverHelper.Install (serverNode);//NS_LOG_UNCOND("dash Install 278");
   serverHelper.SetAttribute ("RemoteAddress", AddressValue (server2Address));

@@ -3,6 +3,7 @@ import glob
 import os
 import sys
 import operator
+import csv
 
 folder=sys.argv[1]
 Servers={}
@@ -10,12 +11,19 @@ ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)
 
 def main():
-	os.chdir(folder)
-	concatenarServers()
-	ServersScores=ahp.Politica(Servers)
-	ServersScores=list(ServersScores.items())
-	ServersScores.sort(key=operator.itemgetter(1))
-	print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
+  os.chdir(folder)
+  concatenarServers()
+  ServersScores=ahp.Politica(Servers)
+  ServersScores=list(ServersScores.items())
+  ServersScores.sort(key=operator.itemgetter(1))
+  print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
+  ServersScores.sort(key=operator.itemgetter(0))
+  line=[str(ServersScores[0][1]),str(ServersScores[1][1]),str(ServersScores[2][1])]
+  csv.register_dialect('myDialect',delimiter = ';',quoting=csv.QUOTE_NONE,skipinitialspace=True)
+  with open('sim1_ServerScores.csv', 'a') as writeFile:
+    writer = csv.writer(writeFile, dialect='myDialect')
+    writer.writerow(line)
+  writeFile.close()
 
 def concatenarServers():
   StallValues=[0,0,0,0]

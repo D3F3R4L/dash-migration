@@ -21,14 +21,17 @@
 #include "ns3/tcp-stream-server.h"
 #include "ns3/tcp-stream-client.h"
 #include "ns3/uinteger.h"
+#include "ns3/string.h"
 #include "ns3/names.h"
 
 namespace ns3 {
 
-TcpStreamServerHelper::TcpStreamServerHelper (uint16_t port)
+TcpStreamServerHelper::TcpStreamServerHelper (uint16_t port, uint32_t simulationId, std::string directory)
 {
   m_factory.SetTypeId (TcpStreamServer::GetTypeId ());
   SetAttribute ("Port", UintegerValue (port));
+  SetAttribute ("directory", StringValue (directory));
+  SetAttribute ("SimulationId", UintegerValue (simulationId));
 }
 
 void

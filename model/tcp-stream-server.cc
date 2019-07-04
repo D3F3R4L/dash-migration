@@ -71,6 +71,16 @@ TcpStreamServer::GetTypeId (void)
                    UintegerValue (9),
                    MakeUintegerAccessor (&TcpStreamServer::m_port),
                    MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("directory",
+                   "The relative path (from ns-3.x directory) to the dash-log-files",
+                   StringValue ("bitrates.txt"),
+                   MakeStringAccessor (&TcpStreamServer::directory),
+                   MakeStringChecker ())
+    .AddAttribute ("SimulationId",
+                   "The ID of the current simulation, for logging purposes",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&TcpStreamServer::simulationId),
+                   MakeUintegerChecker<uint32_t> ())
   ;
   return tid;
 }
@@ -295,7 +305,7 @@ TcpStreamServer::InitializeLogFiles (std::string serverId)
 {
   NS_LOG_FUNCTION (this);
 
-  std::string tLog = "dash-log-files/festive/15/throughputServer_" + serverId+ "_" +"Log.csv";
+  std::string tLog = directory + "throughputServer"+ "_sim" + ToString(simulationId) +"_" + serverId + "_" +"Log.csv";
   throughputLog.open (tLog.c_str ());
   throughputLog << "Time_Now;MBytes_Received;MME\n";
   throughputLog.flush ();

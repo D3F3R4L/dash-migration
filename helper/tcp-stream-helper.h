@@ -43,7 +43,7 @@ public:
    *
    * \param port The port the server will wait on for incoming packets
    */
-  TcpStreamServerHelper (uint16_t port);
+  TcpStreamServerHelper (uint16_t port, uint32_t simulationId, std::string directory);
 
   /**
    * Record an attribute to be set in each Application after it is is created.

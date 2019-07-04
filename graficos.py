@@ -57,8 +57,8 @@ def bufferUnderrunGraphs():
     j+=1
   
   plt.plot(totalUnderruns,timeTotal , label='linear')
-  plt.xlabel('Paradas')
-  plt.ylabel('Tempo Total')
+  plt.xlabel('Buffer Underrun')
+  plt.ylabel('Total Time')
   plt.title("Buffer Underrun Total Duration Time")
   save = 'BufferUnderrunTotalTime.png'
   plt.savefig(save)
@@ -176,7 +176,7 @@ def throughputGraphs(numSegments):
   plt.plot(x,S2Throughput,color='g')
   plt.plot(x,S3Throughput,color='b')
   plt.plot(x,S4Throughput,color='y')
-  plt.xlabel('Segundos')
+  plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
   red_line = mlines.Line2D([], [], color='Red',
                          markersize=15, label='Sv1')
@@ -221,7 +221,7 @@ def throughtputServer():
   plt.plot(Times[1],Throughputs[1],color='g')
   plt.plot(Times[2],Throughputs[2],color='b')
   plt.plot(Times[3],Throughputs[3],color='y')
-  plt.xlabel('Segundos')
+  plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
   red_line = mlines.Line2D([], [], color='Red',
                          markersize=15, label='Sv1')
@@ -241,7 +241,7 @@ def throughtputServer():
   plt.plot(Times[1],MMEs[1],color='g')
   plt.plot(Times[2],MMEs[2],color='b')
   plt.plot(Times[3],MMEs[3],color='y')
-  plt.xlabel('Segundos')
+  plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
   red_line = mlines.Line2D([], [], color='Red',
                          markersize=15, label='Sv1')
@@ -252,7 +252,7 @@ def throughtputServer():
   yellow_line = mlines.Line2D([], [], color='y',
                         markersize=15, label='Cloud')
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
-  plt.title("MME of Server Throughput")
+  plt.title("Exponential Moving Average of Server Throughput")
   save = 'MMEServerThroughput.png'
   plt.savefig(save)
   plt.close()
@@ -312,8 +312,8 @@ def qualityGraphs(numSegments):
   plt.plot(x,S2Quality,color='g')
   plt.plot(x,S3Quality,color='b')
   plt.plot(x,S4Quality,color='y')
-  plt.xlabel('Segmento')
-  plt.ylabel('Nivel de Qualidade')
+  plt.xlabel('Segments')
+  plt.ylabel('Quality Level')
   red_line = mlines.Line2D([], [], color='Red',
                          markersize=15, label='Sv1')
   green_line = mlines.Line2D([], [], color='g',
@@ -402,15 +402,15 @@ def barGraphs(collums, graph):
   rects2 = ax.bar(ind + width/2, MME, width, yerr=MMEMSE,
                   label='MME')
   if (graph=='Stalls'):
-    ax.set_ylabel('Quantidade')
-    ax.set_title('Numero de Stalls por Server')
+    ax.set_ylabel('Quantity')
+    ax.set_title('Number of Stalls per Server')
     ax.set_xticks(ind)
     ax.set_xticklabels(('SV1', 'SV2', 'SV3', 'Cloud'))
     ax.legend()
     save = 'Stalls.png'
   else:
-    ax.set_ylabel('Segundos')
-    ax.set_title('Tempo de Rebuffers por Server')
+    ax.set_ylabel('Seconds')
+    ax.set_title('Rebuffers duration per Server')
     ax.set_xticks(ind)
     ax.set_xticklabels(('SV1', 'SV2', 'SV3', 'Cloud'))
     ax.legend()
