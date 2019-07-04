@@ -340,128 +340,55 @@ void
 politica(std::string dir,ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
 {
   std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dir;
-  //std::string bestSv = execute(filename.c_str());
-  std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-  system(filename.c_str());
-  std::vector <std::string> BestServers ;
+  std::string bestSv = execute(filename.c_str());
+  //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+  //system(filename.c_str());
+  std::vector <std::string> BestServers;
   BestServers = split(bestSv.c_str(), " ");
 
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    if(ip=="1.0.0.1")
+    for (uint j = 0; j < BestServers.size(); j++)
     {
-      switch(BestServers[0].at(0))
+      Address SvIp;
+      uint32_t SvClients;
+      uint16_t aux;
+      switch(BestServers[j].at(0))
       {
         case '1':
+          SvIp=server1Address;
+          SvClients=SClients[0];
+          aux=0;
           break;
         case '2':
-          if (SClients[1]<MaxClientsSV)
-          {
-            SClients[1]=SClients[1]+1;
-            ServerHandover(clientApps, clientHelper, server2Address, clients,i);
-            break;
-          }
+          SvIp=server2Address;
+          SvClients=SClients[1];
+          aux=1;
+          break;
         case '3':
-          if (SClients[2]<MaxClientsSV)
-          {
-            SClients[2]=SClients[2]+1;
-            ServerHandover(clientApps, clientHelper, server3Address, clients,i);
-            break;
-          }
-        default:
-          ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
+          SvIp=server3Address;
+          SvClients=SClients[2];
+          aux=2;
           break;
       }
-    }
-    else
-    {
-      if(ip=="2.0.0.1")
+      if (ip==BestServers[j])
       {
-        switch(BestServers[0].at(0))
-        {
-          case '2':
-            break;
-          case '1':
-            if (SClients[0]<MaxClientsSV)
-            {
-              SClients[0]=SClients[0]+1;
-              ServerHandover(clientApps, clientHelper,server1Address, clients,i);
-              break;
-            }
-          case '3':
-            if (SClients[2]<MaxClientsSV)
-            {
-              SClients[2]=SClients[2]+1;
-              ServerHandover(clientApps, clientHelper, server2Address, clients,i);
-              break;
-            }
-          default:
-            ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
-            break;
-        }
+        j=BestServers.size();
       }
       else
       {
-        if(ip=="3.0.0.1")
+        if(SvClients<MaxClientsSV)
         {
-          switch(BestServers[0].at(0))
-          {
-            case '3':
-              break;
-            case '1':
-              if (SClients[0]<MaxClientsSV)
-              {
-                SClients[0]=SClients[0]+1;
-                ServerHandover(clientApps, clientHelper, server1Address, clients,i);
-                break;
-              }
-            case '2':
-              if (SClients[1]<MaxClientsSV)
-              {
-                SClients[1]=SClients[1]+1;
-                ServerHandover(clientApps, clientHelper, server2Address, clients,i);
-                break;
-              }
-            default:
-              ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
-              break;
-          }
-        }
-        else
-        {
-          switch(BestServers[0].at(0))
-          {
-            case '1':
-              if (SClients[0]<MaxClientsSV)
-              {
-                SClients[0]=SClients[0]+1;
-                ServerHandover(clientApps, clientHelper, server1Address, clients,i);
-                break;
-              }
-            case '2':
-              if (SClients[1]<MaxClientsSV)
-              {
-                SClients[1]=SClients[1]+1;
-                ServerHandover(clientApps, clientHelper, server2Address, clients,i);
-                break;
-              }
-            case '3':
-              if (SClients[2]<MaxClientsSV)
-              {
-                SClients[2]=SClients[2]+1;
-                ServerHandover(clientApps, clientHelper, server3Address, clients,i);
-                break;
-              }
-            default:
-              ServerHandover(clientApps, clientHelper, cloudAddress, clients,i);
-              break;
-          }
+          std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
+          SClients[aux]=SClients[aux]+1;
+          ServerHandover(clientApps, clientHelper, SvIp, clients,i);
+          j=BestServers.size();
         }
       }
     }
   }
-  Simulator::Schedule(Seconds(1),&politica,dir,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(2),&politica,dir,clientApps,clientHelper,clients, numberOfClients);
 }
 
 int
@@ -474,7 +401,7 @@ main (int argc, char *argv[])
   uint32_t numberOfClients = 15;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck90.txt";
+  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
 
   //lastRx=[numberOfClients];
@@ -861,7 +788,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients, numberOfClients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients, numberOfClients);
-  Simulator::Schedule(Seconds(4),&politica,dirTmp,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(5),&politica,dirTmp,clientApps,clientHelper,clients, numberOfClients);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients);
   Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients, numberOfClients);
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);

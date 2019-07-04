@@ -15,7 +15,7 @@ def main():
 	ServersScores=ahp.Politica(Servers)
 	ServersScores=list(ServersScores.items())
 	ServersScores.sort(key=operator.itemgetter(1))
-	print(ServersScores[2],ServersScores[1],ServersScores[0])
+	print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
 
 def concatenarServers():
   StallValues=[0,0,0,0]
