@@ -8,13 +8,13 @@ def main():
   print('começou')
   os.chdir('..')
   segmentfile="segmentSizesBigBuck90.txt"
-  segfile='contrib/dash/{seg}'.format(seg=segmentfile)
+  segfile='src/dash-migration/dash/{seg}'.format(seg=segmentfile)
   file = open(segfile,"r")
   collums= file.readline().split(" ")
   numSegments=len(collums)-1
   adaptAlgo="festive"
   simulation=1
-  numberOfClients=32
+  numberOfClients=15
   folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
   os.chdir(folder)
   #bufferUnderrunGraphs()
@@ -303,15 +303,15 @@ def qualityGraphs(numSegments):
         S4Clients[i]=S4Clients[i]+1
       i+=1
     j+=1
-  
   S1Quality=divisor(S1Quality,S1Clients)
   S2Quality=divisor(S2Quality,S2Clients)
   S3Quality=divisor(S3Quality,S3Clients)
   S4Quality=divisor(S4Quality,S4Clients)
-  plt.plot(segment,S1Quality,color='r')
-  plt.plot(segment,S2Quality,color='g')
-  plt.plot(segment,S3Quality,color='b')
-  plt.plot(segment,S4Quality,color='y')
+  x=np.arange(0,numSegments)
+  plt.plot(x,S1Quality,color='r')
+  plt.plot(x,S2Quality,color='g')
+  plt.plot(x,S3Quality,color='b')
+  plt.plot(x,S4Quality,color='y')
   plt.xlabel('Segmento')
   plt.ylabel('Nivel de Qualidade')
   red_line = mlines.Line2D([], [], color='Red',

@@ -53,7 +53,7 @@ double StartMMESV2=0;
 double StartMMESV3=0;
 double StartMMECloud=0;
 uint16_t n=3;
-uint16_t MaxClientsSV=15;
+uint16_t MaxClientsSV=10;
 std::vector <uint32_t> SClients {0,0,0,0};
 Address server1Address;
 Address server2Address;
@@ -107,7 +107,7 @@ LogStartTime (double sv1,double sv2,double sv3,double cloud)
               << std::setfill (' ') << std::setw (0) << StartMMECloud << ";\n";
   StartTimeLog.flush ();
 }
-
+/*
 void 
 throughput(Ptr<FlowMonitor> flowMonitor,Ptr<Ipv4FlowClassifier> classifier)
 {
@@ -133,7 +133,7 @@ throughput(Ptr<FlowMonitor> flowMonitor,Ptr<Ipv4FlowClassifier> classifier)
     }
   Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
 }
-
+*/
 void
 getThropughputClients(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
 {
@@ -258,7 +258,7 @@ getStartTime(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper
 void
 InitializeLogFiles (std::string dashLogDirectory, std::string m_algoName,std::string numberOfClients, std::string simulationId)
 {
-
+  NS_LOG_UNCOND("Inicializando log");
   std::string SLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "StallLog.csv";
   StallsLog.open (SLog.c_str ());
   StallsLog << "Time_Now;SV1_Stalls;SV1_Stalls_MME;SV2_Stalls;SV2_Stalls_MME;SV3_Stalls;SV3_Stalls_MME;Cloud_Stalls;Cloud_Stalls_MME\n";
@@ -340,7 +340,9 @@ void
 politica(std::string dir,ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
 {
   std::string filename = "python3 /home/derian/AHP/AHP.py " + dir;
-  std::string bestSv = execute(filename.c_str());
+  //std::string bestSv = execute(filename.c_str());
+  std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+  system(filename.c_str());
   std::vector <std::string> BestServers ;
   BestServers = split(bestSv.c_str(), " ");
 
@@ -469,10 +471,10 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 1;
-  uint32_t numberOfClients = 4;
+  uint32_t numberOfClients = 15;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "contrib/dash/segmentSizesBigBuck1A.txt";
+  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck90.txt";
   bool shortGuardInterval = true;
 
   //lastRx=[numberOfClients];
@@ -726,11 +728,11 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   serverApp.Start (Seconds (1.0));
   //serverApp2.Start (Seconds (1.0));
   //serverApp3.Start (Seconds (1.0));
-
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp0;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp1;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp2;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp3;
+  
   for (uint i = 0; i < numberOfClients; i++)
     {
       if(i<numberOfClients/4)
@@ -790,12 +792,12 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
   clientHelper.SetAttribute ("ServerId", UintegerValue (3));
   clientApps = clientHelper.Install (clients_temp3);
-
+  
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
       double startTime = 2.0;
       clientApps.Get (i)->SetStartTime (Seconds (startTime+(i/100)));
-    }/*
+    }
 /*
 
   /* Install TCP Receiver on the access point */
@@ -838,7 +840,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   //FlowMonitorHelper flowHelper;
   //flowMonitor = flowHelper.InstallAll();
   //Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowHelper.GetClassifier ());
-
+  
   InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfClients),ToString(simulationId));
 
   NS_LOG_INFO ("Run Simulation.");
