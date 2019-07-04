@@ -295,7 +295,7 @@ TcpStreamServer::InitializeLogFiles (std::string serverId)
 {
   NS_LOG_FUNCTION (this);
 
-  std::string tLog = "dash-log-files/festive/4/throughputServer_" + serverId+ "_" +"Log.csv";
+  std::string tLog = "dash-log-files/festive/15/throughputServer_" + serverId+ "_" +"Log.csv";
   throughputLog.open (tLog.c_str ());
   throughputLog << "Time_Now;MBytes_Received;MME\n";
   throughputLog.flush ();
