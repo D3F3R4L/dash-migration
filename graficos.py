@@ -8,13 +8,14 @@ def main():
   print('começou')
   os.chdir('..')
   segmentfile="segmentSizesBigBuck90.txt"
-  segfile='src/dash-migration/dash/{seg}'.format(seg=segmentfile)
+  segfile='dash-migration/dash/{seg}'.format(seg=segmentfile)
   file = open(segfile,"r")
   collums= file.readline().split(" ")
   numSegments=len(collums)-1
   adaptAlgo="festive"
   simulation=1
   numberOfClients=15
+  os.chdir('..')
   folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
   os.chdir(folder)
   #bufferUnderrunGraphs()

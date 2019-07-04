@@ -20,19 +20,31 @@ simlationId: o ID da simulação, para obter diferentes logs em simulações que
 Para executar o programa é necessário seguir o seguintes passos:
 
 1. Acessar a pasta ns-3.29
-2. Mover a pasta contrib para a pasta do ns-3.29 
-3. Mover o arquivo dash-migration.cc para a pasta scratch ou qualquer outra pasta na path de execução do ns3
-4. Habilitar os testes e exemplos através do comando:
+2. Mover a pasta 'dash-migration' para a pasta 'src' do ns-3.29 
+3. Habilitar os testes e exemplos através do comando:
 
   ./waf configure --enable-tests --enable-examples
+  CXXFLAGS="-Wall" ./waf configure --enable-examples --enable-tests (Comando caso preise para desabilitar 'Warnings treated as errors')
 
-5. Construir e linkar as dependências e configurações estabelicidas através do comando:
+4. Construir e linkar as dependências e configurações estabelicidas através do comando:
 
   ./waf
 
-6. Rodar o script dash-migration, localizado na pasta scratch do ns-3.29, passando os parâmetros necessários descritos anteriormente. Exemplo:
+5. Rodar o script dash-migration através do comando:
 
-  ./waf --run="dash-migration --simulationId=1 --numberOfClients=3 --adaptationAlgo=panda --segmentDuration=2000000 --segmentSizeFile=contrib/dash/segmentSizes.txt"
+  ./waf --run=dash-migration-v2
+
+6. Alternativamente pode-se rodar o script dash-migration, localizado na pasta src do ns-3.29, passando os parâmetros necessários descritos anteriormente. Exemplo:
+
+  ./waf --run="dash-migration --simulationId=1 --numberOfClients=3 --adaptationAlgo=panda --segmentDuration=2000000 --segmentSizeFile=src/dash-migration/dash/segmentSizesBigBuck1A.txt"
 
 ## Resultados
 Os resultados podem ser obtidos através dos logs dentro da pasta "dash-log-files"
+
+## Graficos
+Os gráficos são gerados pelo arquivo 'graficos.py' que se encontra dentro da pasta dash-migration, antes de rodar o script deve-se alterar os parâmetros inicias dentro do método 'main' de forma a retratar a simulação feita. No momento é gerado 5 graficos que ficam na mesma pasta onde de encontram os logs, abaixo um exemplo de como fazer o setup.
+->Parametros:
+   ->adaptAlgo="festive" (Algoritmo de adaptação escolhido)
+   ->simulation=1  (SimulationId escolhido para a simulação)
+   ->numberOfClients=15 - (Valor referente ao número de clientes na simulação)
+   ->segmentfile="segmentSizesBigBuck90.txt" (Arquivo de segmento utilizado)
