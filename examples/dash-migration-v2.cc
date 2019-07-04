@@ -339,7 +339,7 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
 void
 politica(std::string dir,ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
 {
-  std::string filename = "python3 /home/derian/AHP/AHP.py " + dir;
+  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dir;
   //std::string bestSv = execute(filename.c_str());
   std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
   system(filename.c_str());
