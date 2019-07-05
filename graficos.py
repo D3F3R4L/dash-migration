@@ -7,14 +7,14 @@ import glob
 def main():
   print('começou')
   os.chdir('..')
-  segmentfile="segmentSizesBigBuck90.txt"
+  segmentfile="segmentSizesBigBuck1A.txt"
   segfile='dash-migration/dash/{seg}'.format(seg=segmentfile)
   file = open(segfile,"r")
   collums= file.readline().split(" ")
   numSegments=len(collums)-1
   adaptAlgo="festive"
   simulation=1
-  numberOfClients=15
+  numberOfClients=16
   os.chdir('..')
   folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
   os.chdir(folder)
@@ -196,13 +196,14 @@ def throughputGraphs(numSegments):
 def throughtputServer():
   throughputFiles = glob.glob('*throughputServer*')
   print('Working in throughtputServer...')
+  throughputFiles.sort()
   print(throughputFiles)
   Times=[]
   Throughputs=[]
   MMEs=[]
   j=0
   while(j<len(throughputFiles)):
-    name = throughputFiles[len(throughputFiles)-1-j]
+    name = throughputFiles[j]
     file = open(name,"r")
     next(file)
     Time=[]
@@ -265,6 +266,12 @@ def throughtputServer():
 def qualityGraphs(numSegments):
   playbackFiles = glob.glob('*playbackLog*')
   print('Working in QualityGraphs...')
+  bestScore=0
+  worstScore=10000000
+  bestClientQuality=[]
+  bestClientServer=[]
+  worstClientQuality=[]
+  worstClientServer=[]
   S1Quality=np.zeros(numSegments)
   S2Quality=np.zeros(numSegments)
   S3Quality=np.zeros(numSegments)
@@ -287,6 +294,16 @@ def qualityGraphs(numSegments):
       qualityLevel.append(float(fields[2]))
       Server.append(str(fields[3]))
     file.close()
+    ClientScore=sum(qualityLevel)
+
+    if(ClientScore>bestScore):
+      bestScore=ClientScore
+      bestClientQuality=qualityLevel
+      bestClientServer=Server
+    elif(ClientScore<worstScore):
+      worstScore=ClientScore
+      worstClientQuality=qualityLevel
+      worstClientServer=Server
 
     i=0
     for x1, x2, y1,y2 in zip(segment, segment[1:], qualityLevel, qualityLevel[1:]):
@@ -314,7 +331,7 @@ def qualityGraphs(numSegments):
   plt.plot(x,S3Quality,color='b')
   plt.plot(x,S4Quality,color='y')
   plt.xlabel('Segments')
-  plt.ylabel('Quality Level')
+  plt.ylabel('Quality Level bitrate(Kbps)')
   red_line = mlines.Line2D([], [], color='Red',
                          markersize=15, label='Sv1')
   green_line = mlines.Line2D([], [], color='g',
@@ -323,12 +340,71 @@ def qualityGraphs(numSegments):
                         markersize=15, label='Sv3')
   yellow_line = mlines.Line2D([], [], color='y',
                         markersize=15, label='Cloud')
+  plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Quality Level")
   save = 'qualityLevel.png'
   plt.savefig(save)
   plt.close()
   print('QualityGraphs Done')
+
+  x = np.arange(0,numSegments)
+  i=0
+  for x1, x2, y1,y2 in zip(x, x[1:], bestClientQuality, bestClientQuality[1:]):
+    if str(bestClientServer[i])=="1.0.0.1":
+      plt.plot([x1, x2], [y1, y2], 'r')
+    elif str(bestClientServer[i])=="2.0.0.1":
+      plt.plot([x1, x2], [y1, y2], 'g')
+    elif(str(bestClientServer[i])=="3.0.0.1"):
+      plt.plot([x1, x2], [y1, y2], 'b')
+    else:
+      plt.plot([x1, x2], [y1, y2], 'y')
+    i+=1
+  red_line = mlines.Line2D([], [], color='Red',
+                         markersize=15, label='Sv1')
+  green_line = mlines.Line2D([], [], color='g',
+                         markersize=15, label='Sv2')
+  blue_line = mlines.Line2D([], [], color='b',
+                        markersize=15, label='Sv3')
+  yellow_line = mlines.Line2D([], [], color='y',
+                        markersize=15, label='Cloud')
+  plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  plt.xlabel('Segments')
+  plt.ylabel('Quality Level bitrate(Kbps)')
+  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+  plt.title("Quality Level Best Client")
+  save = 'qualityLevelBestClient.png'
+  plt.savefig(save)
+  plt.close()
+
+  x = np.arange(0,numSegments)
+  i=0
+  for x1, x2, y1,y2 in zip(x, x[1:], worstClientQuality, worstClientQuality[1:]):
+    if str(worstClientServer[i])=="1.0.0.1":
+      plt.plot([x1, x2], [y1, y2], 'r')
+    elif str(worstClientServer[i])=="2.0.0.1":
+      plt.plot([x1, x2], [y1, y2], 'g')
+    elif(str(worstClientServer[i])=="3.0.0.1"):
+      plt.plot([x1, x2], [y1, y2], 'b')
+    else:
+      plt.plot([x1, x2], [y1, y2], 'y')
+    i+=1
+  red_line = mlines.Line2D([], [], color='Red',
+                         markersize=15, label='Sv1')
+  green_line = mlines.Line2D([], [], color='g',
+                         markersize=15, label='Sv2')
+  blue_line = mlines.Line2D([], [], color='b',
+                        markersize=15, label='Sv3')
+  yellow_line = mlines.Line2D([], [], color='y',
+                        markersize=15, label='Cloud')
+  plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  plt.xlabel('Segments')
+  plt.ylabel('Quality Level bitrate(Kbps)')
+  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+  plt.title("Quality Level Worst Client")
+  save = 'qualityLevelWorstClient.png'
+  plt.savefig(save)
+  plt.close()
 
 def divisor(vet1,vet2):
   j=0
@@ -340,6 +416,22 @@ def divisor(vet1,vet2):
       resp.append(vet1[j]/vet2[j])
     j+=1
   return resp
+
+def reScale(vet):
+  for i in range (0,len(vet)):
+    if(vet[i]<=1):
+      vet[i]= 250*vet[i]+400
+    elif(vet[i]<=2):
+      vet[i]=350*(vet[i]-1)+650
+    elif(vet[i]<=3):
+      vet[i]=500*(vet[i]-2)+1000
+    elif(vet[i]<=4):
+      vet[i]=750*(vet[i]-3)+1500
+    elif(vet[i]<=5):
+      vet[i]=1150*(vet[i]-4)+2250
+    else:
+      vet[i]=1300*(vet[i]-5)+3400
+  return vet
 
 def StallsGraphs():
   StallFile = glob.glob('*StallLog*')

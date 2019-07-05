@@ -404,7 +404,7 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 1;
-  uint32_t numberOfClients = 4;
+  uint32_t numberOfClients = 16;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
