@@ -54,12 +54,14 @@ double StartMMESV3=0;
 double StartMMECloud=0;
 uint16_t n=3;
 uint16_t MaxClientsSV=10;
+uint32_t numberOfClients;
 std::vector <uint32_t> SClients {0,0,0,0};
 Address server1Address;
 Address server2Address;
 Address server3Address;
 Address cloudAddress;
 
+std::string dirTmp;
 std::ofstream StallsLog;
 std::ofstream RebufferLog;
 std::ofstream StartTimeLog;
@@ -136,13 +138,13 @@ throughput(Ptr<FlowMonitor> flowMonitor,Ptr<Ipv4FlowClassifier> classifier)
 }
 */
 void
-getThropughputClients(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
+getThropughputClients(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
   for (uint i = 0; i < numberOfClients; i++)
   {
     clientHelper.GetThroughput(clientApps, clients.at (i).first);
   }
-  Simulator::Schedule(Seconds(1),&getThropughputClients,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(1),&getThropughputClients,clientApps,clientHelper,clients);
 }
 
 void
@@ -156,7 +158,7 @@ getThropughputServer(ApplicationContainer serverApp, TcpStreamServerHelper serve
 }
 
 void
-getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
+getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
   uint16_t sv1=0;
   uint16_t sv2=0;
@@ -207,7 +209,7 @@ getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   }
   LogStall(sv1,sv2,sv3,cloud);
   LogRebuffer(Tsv1,Tsv2,Tsv3,Tcloud);
-  Simulator::Schedule(Seconds(1),&getStall,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(1),&getStall,clientApps,clientHelper,clients);
 }
 
 static void
@@ -217,7 +219,7 @@ ServerHandover(ApplicationContainer clientApps, TcpStreamClientHelper clientHelp
 }
 
 void
-getStartTime(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
+getStartTime(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
   double sv1=0;
   double sv2=0;
@@ -283,7 +285,7 @@ InitializeLogFiles (std::string dashLogDirectory, std::string m_algoName,std::st
 }
 
 void 
-stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer, uint32_t numberOfClients)
+stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer)
 {
   uint32_t closedApps = 0;
   closedApps = clientHelper.checkApps(staContainer);
@@ -293,7 +295,7 @@ stopSim (TcpStreamClientHelper clientHelper, NodeContainer staContainer, uint32_
   }
   else
   {
-    Simulator::Schedule(Seconds(5),&stopSim,clientHelper, staContainer,numberOfClients);    
+    Simulator::Schedule(Seconds(5),&stopSim,clientHelper, staContainer);    
   }
 }
 
@@ -339,13 +341,13 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
     SClients[j]=serverHelper.NumberOfClients(serverApp, servers.Get(j));
     NS_LOG_UNCOND(SClients[j]);
   }
-  Simulator::Schedule(Seconds(1),&getClientsOnServer,serverApp, serverHelper,servers);
 }
 
 void
-politica(std::string dir,ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,uint32_t numberOfClients)
+politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
-  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dir;
+  getClientsOnServer(serverApp, serverHelper, servers);
+  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp;
   std::string bestSv = execute(filename.c_str());
   //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
   //system(filename.c_str());
@@ -394,7 +396,44 @@ politica(std::string dir,ApplicationContainer clientApps, TcpStreamClientHelper 
       }
     }
   }
-  Simulator::Schedule(Seconds(2),&politica,dir,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(2),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+}
+
+void
+politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
+{
+  Address SvIp;
+  uint16_t aux;
+  for (uint i = 0; i < numberOfClients; i++)
+  {
+    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+    getClientsOnServer(serverApp, serverHelper, servers);
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" guloso "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3]+" "+ip);
+    std::string bestSv = execute(filename.c_str());
+    std::vector <std::string> BestServers;
+    BestServers = split(bestSv.c_str(), " ");
+    switch(BestServers[0].at(0))
+    {
+      case '1':
+        SvIp=server1Address;
+        aux=0;
+        break;
+      case '2':
+        SvIp=server2Address;
+        aux=1;
+        break;
+      case '3':
+        SvIp=server3Address;
+        aux=2;
+        break;
+    }
+    if (ip!=BestServers[0])
+    {
+      std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
+      ServerHandover(clientApps, clientHelper, SvIp, clients,i);
+    }
+  }
+  Simulator::Schedule(Seconds(2),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 int
@@ -404,7 +443,7 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 1;
-  uint32_t numberOfClients = 16;
+  numberOfClients = 4;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
@@ -604,7 +643,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   const char * tobascoDir = tobascoDirTmp.c_str();
   //const char * tobascoDir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/").c_str();
   mkdir (tobascoDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  std::string dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/";
+  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/";
   //const char * dir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/" + ToString (numberOfClients) + "/").c_str();
   const char * dir = dirTmp.c_str();
   mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -790,13 +829,13 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   //Simulator::Schedule(Seconds(1.1),&ServerHandover,clientApps, clientHelper, server3Address, clients,7);
   //Simulator::Schedule(Seconds(1.15),&ServerHandover,clientApps, clientHelper, server3Address, clients,8);
   //Simulator::Schedule(Seconds(1.2),&ServerHandover,clientApps, clientHelper, server3Address, clients,9);
-  Simulator::Schedule(Seconds(2),&getClientsOnServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
-  Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients, numberOfClients);
-  Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients, numberOfClients);
-  Simulator::Schedule(Seconds(5),&politica,dirTmp,clientApps,clientHelper,clients, numberOfClients);
-  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer, numberOfClients);
-  Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients, numberOfClients);
+  Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients);
+  Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients);
+  //Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(5),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer);
+  Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients);
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
   Simulator::Run ();
   //flowMonitor->SerializeToXmlFile ("results.xml" , true, true );

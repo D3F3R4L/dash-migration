@@ -417,22 +417,6 @@ def divisor(vet1,vet2):
     j+=1
   return resp
 
-def reScale(vet):
-  for i in range (0,len(vet)):
-    if(vet[i]<=1):
-      vet[i]= 250*vet[i]+400
-    elif(vet[i]<=2):
-      vet[i]=350*(vet[i]-1)+650
-    elif(vet[i]<=3):
-      vet[i]=500*(vet[i]-2)+1000
-    elif(vet[i]<=4):
-      vet[i]=750*(vet[i]-3)+1500
-    elif(vet[i]<=5):
-      vet[i]=1150*(vet[i]-4)+2250
-    else:
-      vet[i]=1300*(vet[i]-5)+3400
-  return vet
-
 def StallsGraphs():
   StallFile = glob.glob('*StallLog*')
   print('Working in StallLog...')
