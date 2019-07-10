@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 import math
-Limiares=[2, 5, 10, 20]
+Limiares=[30, 20, 1, 10]
 
 
 class aleatorio():
@@ -16,17 +16,19 @@ class aleatorio():
         s = [x for x in Fogs if x not in fog]
         return (random.choice(s))
 
-    def atualizarFogsEntrada(self, fogs):
+    def atualizarFogsEntrada(self, fogs,server):
         mudar=False
-        parametro = np.array(fogs["4.0.0.1"]).flat
-        for n in range(0, 4):
-            if (parametro[n] > Limiares[n]):
-                mudar = True
-        if mudar == True:
-            return self.mudarFog("4.0.0.1", fogs)
+        parametro = np.array(fogs[server]).flat
+        n=parametro[3]
+        if n==0:
+                n=1
+        if (parametro[0] > Limiares[0] or parametro[1] > Limiares[1] or (parametro[2]/n)<(Limiares[2]/n) or n>Limiares[3]):
+            mudar = True
+        if (mudar == True):
+            return self.mudarFog(server, fogs)
         else:
-            return fogs["4.0.0.1"]
+            return server
 
     def Politica(self, matrizesdepreferencias,ip):
-        server=ip
-        return  self.atualizarFogsEntrada(matrizesdepreferencias)
+        ip=ip
+        return  self.atualizarFogsEntrada(matrizesdepreferencias,ip)

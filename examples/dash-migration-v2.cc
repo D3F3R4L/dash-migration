@@ -408,10 +408,10 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
     getClientsOnServer(serverApp, serverHelper, servers);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" guloso "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip;
-    //std::string bestSv = execute(filename.c_str());
-    std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-    system(filename.c_str());
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" ale "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip;
+    std::string bestSv = execute(filename.c_str());
+    //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+    //system(filename.c_str());
     std::vector <std::string> BestServers;
     BestServers = split(bestSv.c_str(), " ");
     switch(BestServers[0].at(0))

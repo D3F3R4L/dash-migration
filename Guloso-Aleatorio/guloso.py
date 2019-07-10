@@ -4,8 +4,7 @@ import numpy as np
 
 import math
 
-Limiares=[20, 40, 6, 10]
-clients=[]
+Limiares=[30, 20, 1, 10]
 
 class guloso():
 
@@ -17,28 +16,30 @@ class guloso():
         for i in s:
             mudar = False
             parametro = np.array(Fogs[i]).flat
-            for n in range(0, 4):
-                if parametro[n] < Limiares[n]:
-                     mudar = True
-                else:
-                    mudar = False
+            n=parametro[3]
+            if n==0:
+                n=1
+            if (parametro[0] < Limiares[0] and parametro[1] < Limiares[1] and (parametro[2]/n)>(Limiares[2]/n) and n<Limiares[3]):
+                mudar = True
+            else:
+                mudar = False
             if (mudar == True):
-                print("server ",i)
                 return i
-        return (Fogs[server])
+        return fog
 
     def atualizarFogsEntrada(self, fogs,server):
         mudar=False
         parametro =  np.array(fogs[server]).flat
-        for n in range(0, 4):
-            if (parametro[n] > Limiares[n] or server == "4.0.0.1"):
-                mudar = True
+        n=parametro[3]
+        if n==0:
+                n=1
+        if (parametro[0] > Limiares[0] or parametro[1] > Limiares[1] or (parametro[2]/n)<(Limiares[2]/n) or n>Limiares[3]):
+            mudar = True
         if (mudar == True):
             return self.mudarFog(server, fogs)
         else:
-            return fogs[server]
+            return server
 
-    def Politica(self, matrizesdepreferencias,ip,clients):
+    def Politica(self, matrizesdepreferencias,ip):
         ip=ip
-        clients=clients
         return self.atualizarFogsEntrada(matrizesdepreferencias,ip)
