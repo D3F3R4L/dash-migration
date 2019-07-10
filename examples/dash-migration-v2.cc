@@ -428,6 +428,10 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
         SvIp=server3Address;
         aux=2;
         break;
+      default:
+        SvIp=cloudAddress;
+        aux=3;
+        break;
     }
     if (ip!=BestServers[0])
     {
