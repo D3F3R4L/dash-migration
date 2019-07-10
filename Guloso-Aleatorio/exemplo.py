@@ -19,9 +19,9 @@ def main():
   os.chdir(folder)
   concatenarServers()
   if (Type=="guloso"):
-    selecionado=gul.Politica(Servers,ip)
+    selecionado=gul.Politica(Servers,ip,clients)
   else:
-    selecionado=al.Politica(Servers,ip)
+    selecionado=al.Politica(Servers,ip,clients)
   print(selecionado)
 
 def concatenarServers():
