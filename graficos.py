@@ -14,16 +14,16 @@ def main():
   numSegments=len(collums)-1
   adaptAlgo="festive"
   simulation=1
-  numberOfClients=15
+  numberOfClients=36
   os.chdir('..')
   folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
   os.chdir(folder)
   #bufferUnderrunGraphs()
   #throughputGraphs(numSegments)
-  qualityGraphs(numSegments)
-  throughtputServer()
-  StallsGraphs()
-  RebufferGraphs()
+  qualityGraphs(numSegments,simulation)
+  throughtputServer(simulation)
+  StallsGraphs(simulation)
+  RebufferGraphs(simulation)
   print('terminou')
   #print(os.getcwd())
   #print(os.listdir())
@@ -32,7 +32,8 @@ def main():
 # Buffer Underrun 
 ###################
 def bufferUnderrunGraphs():
-  bufferUnderrunFiles = glob.glob('*bufferUnderrunLog*')
+  files= '*sim{simu}*bufferUnderrunLog*'.format(simu=simulation)
+  bufferUnderrunFiles = glob.glob(files)
   print(bufferUnderrunFiles)
   S1timeTotal=[]
   S2timeTotal=[]
@@ -193,8 +194,9 @@ def throughputGraphs(numSegments):
   plt.savefig(save)
   plt.close()
 
-def throughtputServer():
-  throughputFiles = glob.glob('*throughputServer*')
+def throughtputServer(simulation):
+  files= '*throughputServer*sim{simu}*'.format(simu=simulation)
+  throughputFiles = glob.glob(files)
   print('Working in throughtputServer...')
   throughputFiles.sort()
   print(throughputFiles)
@@ -235,7 +237,7 @@ def throughtputServer():
                         markersize=15, label='Cloud')
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Server Throughput")
-  save = 'ServerThroughput.png'
+  save = 'ServerThroughput-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
 
@@ -255,7 +257,7 @@ def throughtputServer():
                         markersize=15, label='Cloud')
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Exponential Moving Average of Server Throughput")
-  save = 'MMEServerThroughput.png'
+  save = 'MMEServerThroughput-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
   print('ThroughtputServer Done')
@@ -263,8 +265,9 @@ def throughtputServer():
 ###################
 # Playback Quality 
 ###################
-def qualityGraphs(numSegments):
-  playbackFiles = glob.glob('*playbackLog*')
+def qualityGraphs(numSegments,simulation):
+  files= '*sim{simu}*playbackLog*'.format(simu=simulation)
+  playbackFiles = glob.glob(files)
   print('Working in QualityGraphs...')
   bestScore=0
   worstScore=10000000
@@ -343,7 +346,7 @@ def qualityGraphs(numSegments):
   plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Quality Level")
-  save = 'qualityLevel.png'
+  save = 'qualityLevel-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
   print('QualityGraphs Done')
@@ -373,7 +376,7 @@ def qualityGraphs(numSegments):
   plt.ylabel('Quality Level bitrate(Kbps)')
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Quality Level Best Client")
-  save = 'qualityLevelBestClient.png'
+  save = 'qualityLevelBestClient-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
 
@@ -402,7 +405,7 @@ def qualityGraphs(numSegments):
   plt.ylabel('Quality Level bitrate(Kbps)')
   plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Quality Level Worst Client")
-  save = 'qualityLevelWorstClient.png'
+  save = 'qualityLevelWorstClient-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
 
@@ -417,8 +420,9 @@ def divisor(vet1,vet2):
     j+=1
   return resp
 
-def StallsGraphs():
-  StallFile = glob.glob('*StallLog*')
+def StallsGraphs(simulation):
+  files= '*sim{simu}*StallLog*'.format(simu=simulation)
+  StallFile = glob.glob(files)
   print('Working in StallLog...')
   j=0
   while(j<len(StallFile)):
@@ -430,13 +434,14 @@ def StallsGraphs():
       fields = line.split(";")
       collums.append(fields)
     collums=list(zip(*collums))
-    barGraphs(collums,'Stalls')  
+    barGraphs(collums,'Stalls',simulation)  
     j+=1
 
   print('StallLog Done')
 
-def RebufferGraphs():
-  RebufferFile = glob.glob('*RebufferLog*')
+def RebufferGraphs(simulation):
+  files= '*sim{simu}*RebufferLog*'.format(simu=simulation)
+  RebufferFile = glob.glob(files)
   print('Working in RebufferLog...')
   j=0
   while(j<len(RebufferFile)):
@@ -448,11 +453,11 @@ def RebufferGraphs():
       fields = line.split(";")
       collums.append(fields)
     collums=list(zip(*collums))
-    barGraphs(collums,'Rebuffer')  
+    barGraphs(collums,'Rebuffer',simulation)  
     j+=1
   print('RebufferLog Done')
 
-def barGraphs(collums, graph):
+def barGraphs(collums, graph,simulation):
   default=[]
   defaultMSE=[]
   MME=[]
@@ -484,14 +489,14 @@ def barGraphs(collums, graph):
     ax.set_xticks(ind)
     ax.set_xticklabels(('SV1', 'SV2', 'SV3', 'Cloud'))
     ax.legend()
-    save = 'Stalls.png'
+    save = 'Stalls-{simu}.png'.format(simu=simulation)
   else:
     ax.set_ylabel('Seconds')
     ax.set_title('Rebuffers duration per Server')
     ax.set_xticks(ind)
     ax.set_xticklabels(('SV1', 'SV2', 'SV3', 'Cloud'))
     ax.legend()
-    save = 'Rebuffers.png'
+    save = 'Rebuffers-{simu}.png'.format(simu=simulation)
   
   plt.savefig(save)
   plt.close()

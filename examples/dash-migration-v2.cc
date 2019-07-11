@@ -169,7 +169,7 @@ getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   double Tsv2=0;
   double Tsv3=0;
   double Tcloud=0;
-
+  NS_LOG_UNCOND("Stall");
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
@@ -449,7 +449,7 @@ main (int argc, char *argv[])
 
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
-  simulationId = 2;
+  simulationId = 1;
   numberOfClients = 4;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
@@ -839,8 +839,8 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients);
-  Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
- //Simulator::Schedule(Seconds(5),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+ //Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer);
   Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients);
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
