@@ -55,6 +55,7 @@ double StartMMECloud=0;
 uint16_t n=3;
 uint16_t MaxClientsSV=10;
 uint32_t numberOfClients;
+uint32_t simulationId = 0;
 std::vector <uint32_t> SClients {0,0,0,0};
 Address server1Address;
 Address server2Address;
@@ -347,7 +348,7 @@ void
 politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
   getClientsOnServer(serverApp, serverHelper, servers);
-  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp;
+  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId);
   std::string bestSv = execute(filename.c_str());
   //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
   //system(filename.c_str());
@@ -408,7 +409,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
     getClientsOnServer(serverApp, serverHelper, servers);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" ale "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip;
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" ale "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId);
     std::string bestSv = execute(filename.c_str());
     //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
     //system(filename.c_str());
@@ -448,8 +449,8 @@ main (int argc, char *argv[])
 
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
-  uint32_t simulationId = 1;
-  numberOfClients = 15;
+  simulationId = 2;
+  numberOfClients = 4;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck90.txt";
@@ -838,8 +839,8 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients);
-  //Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
-  Simulator::Schedule(Seconds(5),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+ //Simulator::Schedule(Seconds(5),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer);
   Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients);
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);

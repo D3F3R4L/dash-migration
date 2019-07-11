@@ -6,6 +6,7 @@ import operator
 import csv
 
 folder=sys.argv[1]
+simu=sys.argv[2]
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)
