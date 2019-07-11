@@ -396,7 +396,7 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
       }
     }
   }
-  Simulator::Schedule(Seconds(2),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(1),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 void
@@ -439,7 +439,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
       ServerHandover(clientApps, clientHelper, SvIp, clients,i);
     }
   }
-  Simulator::Schedule(Seconds(2),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(1),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 int
@@ -449,10 +449,10 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   uint32_t simulationId = 1;
-  numberOfClients = 4;
+  numberOfClients = 15;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
+  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck90.txt";
   bool shortGuardInterval = true;
 
   //lastRx=[numberOfClients];
