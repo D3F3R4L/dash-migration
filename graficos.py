@@ -7,14 +7,14 @@ import glob
 def main():
   print('começou')
   os.chdir('..')
-  segmentfile="segmentSizesBigBuck90.txt"
+  segmentfile="segmentSizesBigBuck1A.txt"
   segfile='dash-migration/dash/{seg}'.format(seg=segmentfile)
   file = open(segfile,"r")
   collums= file.readline().split(" ")
   numSegments=len(collums)-1
   adaptAlgo="festive"
   simulation=1
-  numberOfClients=36
+  numberOfClients=15
   os.chdir('..')
   folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
   os.chdir(folder)
@@ -181,14 +181,14 @@ def throughputGraphs(numSegments):
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
   red_line = mlines.Line2D([], [], color='Red',
-                         markersize=15, label='Sv1')
+                         markersize=15, label='Tier-2 EP-1')
   green_line = mlines.Line2D([], [], color='g',
-                         markersize=15, label='Sv2')
+                         markersize=15, label='Tier-2 EP-2')
   blue_line = mlines.Line2D([], [], color='b',
-                        markersize=15, label='Sv3')
+                        markersize=15, label='Tier-2 EP-3')
   yellow_line = mlines.Line2D([], [], color='y',
-                        markersize=15, label='Cloud')
-  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+                        markersize=15, label='Tier-1 Cloud')
+  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Server Throughput")
   save = 'ServerThroughput.png'
   plt.savefig(save)
@@ -228,14 +228,14 @@ def throughtputServer(simulation):
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
   red_line = mlines.Line2D([], [], color='Red',
-                         markersize=15, label='Sv1')
+                         markersize=15, label='Tier-2 EP-1')
   green_line = mlines.Line2D([], [], color='g',
-                         markersize=15, label='Sv2')
+                         markersize=15, label='Tier-2 EP-2')
   blue_line = mlines.Line2D([], [], color='b',
-                        markersize=15, label='Sv3')
+                        markersize=15, label='Tier-2 EP-3')
   yellow_line = mlines.Line2D([], [], color='y',
-                        markersize=15, label='Cloud')
-  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+                        markersize=15, label='Tier-1 Cloud')
+  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Server Throughput")
   save = 'ServerThroughput-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
@@ -248,14 +248,14 @@ def throughtputServer(simulation):
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
   red_line = mlines.Line2D([], [], color='Red',
-                         markersize=15, label='Sv1')
+                         markersize=15, label='Tier-2 EP-1')
   green_line = mlines.Line2D([], [], color='g',
-                         markersize=15, label='Sv2')
+                         markersize=15, label='Tier-2 EP-2')
   blue_line = mlines.Line2D([], [], color='b',
-                        markersize=15, label='Sv3')
+                        markersize=15, label='Tier-2 EP-3')
   yellow_line = mlines.Line2D([], [], color='y',
-                        markersize=15, label='Cloud')
-  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+                        markersize=15, label='Tier-1 Cloud')
+  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Exponential Moving Average of Server Throughput")
   save = 'MMEServerThroughput-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
@@ -324,30 +324,35 @@ def qualityGraphs(numSegments,simulation):
         S4Clients[i]=S4Clients[i]+1
       i+=1
     j+=1
+
   S1Quality=divisor(S1Quality,S1Clients)
   S2Quality=divisor(S2Quality,S2Clients)
   S3Quality=divisor(S3Quality,S3Clients)
   S4Quality=divisor(S4Quality,S4Clients)
+  S1Quality=toBitrate(S1Quality)
+  S2Quality=toBitrate(S2Quality)
+  S3Quality=toBitrate(S3Quality)
+  S4Quality=toBitrate(S4Quality)
   x=np.arange(0,numSegments)
-  plt.plot(x,S1Quality,color='r')
-  plt.plot(x,S2Quality,color='g')
-  plt.plot(x,S3Quality,color='b')
-  plt.plot(x,S4Quality,color='y')
+  fig,ax =plt.subplots()
+  p1,=plt.plot(x,S1Quality,color='r',markersize=15, label='Tier-2 EP-1')
+  p2,=plt.plot(x,S2Quality,color='g',markersize=15, label='Tier-2 EP-2')
+  p3,=plt.plot(x,S3Quality,color='b',markersize=15, label='Tier-2 EP-3')
+  p4,=plt.plot(x,S4Quality,color='y',markersize=15, label='Tier-1 Cloud')
   plt.xlabel('Segments')
-  plt.ylabel('Quality Level bitrate(Kbps)')
-  red_line = mlines.Line2D([], [], color='Red',
-                         markersize=15, label='Sv1')
-  green_line = mlines.Line2D([], [], color='g',
-                         markersize=15, label='Sv2')
-  blue_line = mlines.Line2D([], [], color='b',
-                        markersize=15, label='Sv3')
-  yellow_line = mlines.Line2D([], [], color='y',
-                        markersize=15, label='Cloud')
-  plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
-  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
-  plt.title("Quality Level")
+  plt.ylabel('Video bitrate(Kbps)')
+  red_line = mlines.Line2D([], [], color='r',markersize=15, label='{mean} Kbps'.format(mean=(sum(S1Quality)/len(S1Quality))))
+  green_line = mlines.Line2D([], [], color='g',markersize=15, label='{mean} Kbps'.format(mean=(sum(S2Quality)/len(S2Quality))))
+  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='{mean} Kbps'.format(mean=(sum(S3Quality)/len(S3Quality))))
+  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='{mean} Kbps'.format(mean=(sum(S4Quality)/len(S4Quality))))
+  plt.yticks( [400,650,1000,1500,2250,3400,4700,6000], ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
+  plt.title("Video Bitrate")
+  plt.legend(title='Bitrate Mean',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
+  plt.grid(True)
+  ax.add_artist(l1)
   save = 'qualityLevel-{simu}.png'.format(simu=simulation)
-  plt.savefig(save)
+  plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('QualityGraphs Done')
 
@@ -364,18 +369,18 @@ def qualityGraphs(numSegments,simulation):
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
   red_line = mlines.Line2D([], [], color='Red',
-                         markersize=15, label='Sv1')
+                         markersize=15, label='Tier-2 EP-1')
   green_line = mlines.Line2D([], [], color='g',
-                         markersize=15, label='Sv2')
+                         markersize=15, label='Tier-2 EP-2')
   blue_line = mlines.Line2D([], [], color='b',
-                        markersize=15, label='Sv3')
+                        markersize=15, label='Tier-2 EP-3')
   yellow_line = mlines.Line2D([], [], color='y',
-                        markersize=15, label='Cloud')
+                        markersize=15, label='Tier-1 Cloud')
   plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
   plt.xlabel('Segments')
-  plt.ylabel('Quality Level bitrate(Kbps)')
-  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
-  plt.title("Quality Level Best Client")
+  plt.ylabel('Video bitrate(Kbps)')
+  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+  plt.title("Video Bitrate Best Client")
   save = 'qualityLevelBestClient-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
@@ -393,18 +398,18 @@ def qualityGraphs(numSegments,simulation):
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
   red_line = mlines.Line2D([], [], color='Red',
-                         markersize=15, label='Sv1')
+                         markersize=15, label='Tier-2 EP-1')
   green_line = mlines.Line2D([], [], color='g',
-                         markersize=15, label='Sv2')
+                         markersize=15, label='Tier-2 EP-2')
   blue_line = mlines.Line2D([], [], color='b',
-                        markersize=15, label='Sv3')
+                        markersize=15, label='Tier-2 EP-3')
   yellow_line = mlines.Line2D([], [], color='y',
-                        markersize=15, label='Cloud')
+                        markersize=15, label='Tier-1 Cloud')
   plt.yticks( np.arange(8), ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
   plt.xlabel('Segments')
-  plt.ylabel('Quality Level bitrate(Kbps)')
-  plt.legend(title='Reinforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
-  plt.title("Quality Level Worst Client")
+  plt.ylabel('Video bitrate(Kbps)')
+  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+  plt.title("Video Bitrate Worst Client")
   save = 'qualityLevelWorstClient-{simu}.png'.format(simu=simulation)
   plt.savefig(save)
   plt.close()
@@ -487,18 +492,35 @@ def barGraphs(collums, graph,simulation):
     ax.set_ylabel('Quantity')
     ax.set_title('Number of Stalls per Server')
     ax.set_xticks(ind)
-    ax.set_xticklabels(('SV1', 'SV2', 'SV3', 'Cloud'))
+    ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
     ax.legend()
     save = 'Stalls-{simu}.png'.format(simu=simulation)
   else:
     ax.set_ylabel('Seconds')
     ax.set_title('Rebuffers duration per Server')
     ax.set_xticks(ind)
-    ax.set_xticklabels(('SV1', 'SV2', 'SV3', 'Cloud'))
+    ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
     ax.legend()
     save = 'Rebuffers-{simu}.png'.format(simu=simulation)
   
   plt.savefig(save)
   plt.close()
+
+def toBitrate(vet):
+  for i in range(0,len(vet)):
+    if vet[i]<=1:
+      vet[i]=250*vet[i]+400
+    elif vet[i]<=2:
+      vet[i]=350*(vet[i]-1)+650
+    elif vet[i]<=3:
+      vet[i]=500*(vet[i]-2)+1000
+    elif vet[i]<=4:
+      vet[i]=750*(vet[i]-3)+1500
+    elif vet[i]<=5:
+      vet[i]=1150*(vet[i]-4)+2250
+    else:
+      vet[i]=1300*(vet[i]-5)+3400
+  return vet
+
 if __name__=="__main__":
     main()

@@ -453,8 +453,9 @@ main (int argc, char *argv[])
   numberOfClients = 4;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck90.txt";
+  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
+  int seedValue = 1;
 
   //lastRx=[numberOfClients];
 
@@ -465,8 +466,11 @@ main (int argc, char *argv[])
   cmd.AddValue ("segmentDuration", "The duration of a video segment in microseconds", segmentDuration);
   cmd.AddValue ("adaptationAlgo", "The adaptation algorithm that the client uses for the simulation", adaptationAlgo);
   cmd.AddValue ("segmentSizeFile", "The relative path (from ns-3.x directory) to the file containing the segment sizes in bytes", segmentSizeFilePath);
+  cmd.AddValue("seedValue", "random seed value.", seedValue);
   cmd.Parse (argc, argv);
 
+  RngSeedManager::SetSeed(seedValue + 10000);
+  srand(seedValue);
 
   Config::SetDefault("ns3::TcpSocket::SegmentSize", UintegerValue (1446));
   Config::SetDefault("ns3::TcpSocket::SndBufSize", UintegerValue (524288));
