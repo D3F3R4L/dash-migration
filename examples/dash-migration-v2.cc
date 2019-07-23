@@ -63,6 +63,7 @@ Address server3Address;
 Address cloudAddress;
 
 std::string dirTmp;
+std::string type;
 std::ofstream StallsLog;
 std::ofstream RebufferLog;
 std::ofstream StartTimeLog;
@@ -409,7 +410,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
     getClientsOnServer(serverApp, serverHelper, servers);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" ale "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId);
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId);
     std::string bestSv = execute(filename.c_str());
     //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
     //system(filename.c_str());
@@ -456,6 +457,7 @@ main (int argc, char *argv[])
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
   int seedValue = 1;
+  uint16_t pol=3;
 
   //lastRx=[numberOfClients];
 
@@ -467,6 +469,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("adaptationAlgo", "The adaptation algorithm that the client uses for the simulation", adaptationAlgo);
   cmd.AddValue ("segmentSizeFile", "The relative path (from ns-3.x directory) to the file containing the segment sizes in bytes", segmentSizeFilePath);
   cmd.AddValue("seedValue", "random seed value.", seedValue);
+  cmd.AddValue("politica", "value to choose the type of politica to be used (0 is AHP , 1 is Greedy, 2 is random and 3 is none. Default is 3)", pol)
   cmd.Parse (argc, argv);
 
   RngSeedManager::SetSeed(seedValue + 10000);
@@ -823,6 +826,27 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   //FlowMonitorHelper flowHelper;
   //flowMonitor = flowHelper.InstallAll();
   //Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowHelper.GetClassifier ());
+
+  if (pol==0)
+  {
+  	Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  }
+  else
+  {
+  	if (pol==1)
+  	{
+  		type="guloso";
+  		Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  	}
+  	else
+  	{
+  	  if (pol==2)
+  	  {
+  		type="aleatorio";
+  		Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  	  }
+  	}
+  }
   
   InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfClients),ToString(simulationId));
 
