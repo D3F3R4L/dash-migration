@@ -5,9 +5,9 @@ import numpy as np
 import argparse
 
 NumCores=os.cpu_count()
-parser = argparse.ArgumentParser(description='Script to run multiple simulations with NS3 scripts, and balence the use of cores on CPU to always left some free cores')
+parser = argparse.ArgumentParser(description='Script to run multiple simulations with NS3 scripts, and balence the use of cores on CPU to always left some free cores. Example python3 src/dash-migration/Run.py dash-migration-v2 -i simulationId -s seedValue -r 5 -args politica=1 -args numberOfClients=5')
 parser.add_argument('script', type=str,help='The script local to run the script. Ex:scratch/myscript')
-parser.add_argument('--arguments','-args', type=str,help='The arguments used in the script if needed. Ex: NumClientes=30  Type=2')
+parser.add_argument('--arguments','-args',action='append', type=str,help='The arguments used in the script if needed. Ex: NumClientes=30  Type=2')
 parser.add_argument('--cores','-c', type=float,default=0.5,help='Percentage of cores that the simulations can use. Default is 0.5')
 parser.add_argument('--MaxUse','-m', action='store_true',help='Active max performance and disable balanced use of cores on CPU')
 parser.add_argument('--runs','-r', type=int,default=1,help='Number of simulations that you like to run. Default is 1')
@@ -25,11 +25,10 @@ MaxLoad=args.cores
 MaxCores=int(NumCores*MaxLoad)
 script=args.script
 if args.arguments!=None:
-	script=script+" --"+args.arguments
+        for a in args.arguments:
+	        script=script+" --"+a
 if args.id!=None:
 	script=script+" --"+args.id
-if args.seed!=None:
-		script=script+' --'+args.seed
 script = './waf --run="'+script
 print(script)
 
@@ -55,8 +54,8 @@ def main():
 def callFunction(num, script):
 	if args.id!=None:
 		script=script+'={id}'.format(id=num)
-	elif args.seed!=None:
-		script=script+'={id}'.format(id=num)
+	if args.seed!=None:
+		script=script+' --'+args.seed+'={id}'.format(id=num)
 	
 	script=script+'"'
 	print(script)
