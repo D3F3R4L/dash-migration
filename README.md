@@ -37,6 +37,10 @@ Para executar o programa é necessário seguir o seguintes passos:
 6. Alternativamente pode-se rodar o script dash-migration, localizado na pasta src do ns-3.29, passando os parâmetros necessários descritos anteriormente. Exemplo:
 
   ./waf --run="dash-migration --simulationId=1 --numberOfClients=3 --adaptationAlgo=panda --segmentDuration=2000000 --segmentSizeFile=src/dash-migration/dash/segmentSizesBigBuck1A.txt"
+  
+7. A partir do diretorio do Ns3 pode-se chamar o script em python para se fazer multiplas simulações. Exemplo:
+
+  python3 src/dash-migration/Run.py dash-migration-v2 -i simulationId -s seedValue -r 17 -args politica=0 -args numberOfClients=32 -args segmentSizeFilePath=src/dash-migration/dash/segmentSizesBigBuck90.txt -ug -g src/dash-migration/graficos.py -rargs runs=r -cargs numberOfClients=c -gargs seg=segmentSizesBigBuck90.txt
 
 ## Resultados
 Os resultados podem ser obtidos através dos logs dentro da pasta "dash-log-files"
