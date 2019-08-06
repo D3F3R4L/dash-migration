@@ -356,9 +356,9 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
 {
   getClientsOnServer(serverApp, serverHelper, servers);
   std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
-  std::string bestSv = execute(filename.c_str());
-  //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-  //system(filename.c_str());
+  //std::string bestSv = execute(filename.c_str());
+  std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+  system(filename.c_str());
   std::vector <std::string> BestServers;
   BestServers = split(bestSv.c_str(), " ");
 

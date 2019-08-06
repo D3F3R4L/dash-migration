@@ -30,7 +30,7 @@ def concatenarServers():
   StallValues=[0,0,0,0]
   RebufferValues=[0,0,0,0]
   ThroughputValues=[0,0,0,0]
-  files= '*{simu}_RebufferLog*'.format(simu=simu)
+  files= '*sim{simu}_RebufferLog*'.format(simu=simu)
   RebufferFile = glob.glob(files)
   name = RebufferFile[0]
   file = open(name,"r")
@@ -42,7 +42,7 @@ def concatenarServers():
     RebufferValues[2]=float(fields[5])
     RebufferValues[3]=float(fields[7])
 
-    files= '*{simu}_StallLog*'.format(simu=simu)
+    files= '*sim{simu}_StallLog*'.format(simu=simu)
     StallFile = glob.glob(files)
     name = StallFile[0]
     file = open(name,"r")
@@ -54,7 +54,7 @@ def concatenarServers():
       StallValues[2]=int(float(fields[5]))
       StallValues[3]=int(float(fields[7]))
 
-    files= '*throughputServer_{simu}*'.format(simu=simu)
+    files= '*throughputServer_sim{simu}*'.format(simu=simu)
     throughputFiles = glob.glob(files)
     throughputFiles.sort()
     j=0
