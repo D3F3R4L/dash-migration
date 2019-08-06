@@ -11,6 +11,7 @@ Type=sys.argv[2]
 clients=[sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6]]
 ip=sys.argv[7]
 simu=sys.argv[8]
+delays=[sys.argv[9],sys.argv[10],sys.argv[11],sys.argv[12]]
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 gul = guloso(log=True)
@@ -66,9 +67,16 @@ def concatenarServers():
         ThroughputValues[j]=float(fields[1])
       j+=1
 
+    for i in range(0,len(delays)):
+      aux=list(delays[i])
+      aux=aux[:-10]
+      aux.pop(0)
+      delays[i] = ''.join(aux)
+      delays[i] = int(delays[i])
+
     for i in range(0,4):
       ServerIP = ServersIP[i]
-      Servers[ServerIP] = [RebufferValues[i],StallValues[i],ThroughputValues[i],int(float(clients[i]))]
+      Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i],int(float(clients[i]))]
     return Servers
 
 if __name__=="__main__":

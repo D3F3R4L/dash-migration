@@ -98,7 +98,7 @@ class AHP():
         fogid=0
         for idfog in parametro:
             parametros = parametro[idfog]
-            if parametros > anterior :
+            if parametros < anterior :
 
                 fogid = idfog
                 anterior = parametro[idfog]

@@ -7,6 +7,7 @@ import csv
 
 folder=sys.argv[1]
 simu=sys.argv[2]
+delays=[sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6]]
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)
@@ -67,9 +68,16 @@ def concatenarServers():
         ThroughputValues[j]=float(fields[1])
       j+=1
 
+    for i in range(0,len(delays)):
+      aux=list(delays[i])
+      aux=aux[:-10]
+      aux.pop(0)
+      delays[i] = ''.join(aux)
+      delays[i] = int(delays[i])
+
     for i in range(0,4):
       ServerIP = ServersIP[i]
-      Servers[ServerIP] = [RebufferValues[i],StallValues[i],ThroughputValues[i],1]
+      Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
     return Servers
 
 if __name__=="__main__":

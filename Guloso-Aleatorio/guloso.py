@@ -4,7 +4,7 @@ import numpy as np
 
 import math
 
-Limiares=[30, 20, 1, 10]
+Limiares=[50,2,30,20,10]
 
 class guloso():
 
@@ -19,7 +19,7 @@ class guloso():
             n=parametro[3]
             if n==0:
                 n=1
-            if (parametro[0] < Limiares[0] and parametro[1] < Limiares[1] and (parametro[2]/n)>(Limiares[2]/n) and n<Limiares[3]):
+            if (parametro[0] > Limiares[0] or (parametro[1]/n)<(Limiares[1]/n) or parametro[2] > Limiares[2] or parametro[3] > Limiares[3] or n>Limiares[4]):
                 mudar = True
             else:
                 mudar = False
@@ -30,10 +30,10 @@ class guloso():
     def atualizarFogsEntrada(self, fogs,server):
         mudar=False
         parametro =  np.array(fogs[server]).flat
-        n=parametro[3]
+        n=parametro[4]
         if n==0:
                 n=1
-        if (parametro[0] > Limiares[0] or parametro[1] > Limiares[1] or (parametro[2]/n)<(Limiares[2]/n) or n>Limiares[3]):
+        if (parametro[0] > Limiares[0] or (parametro[1]/n)<(Limiares[1]/n) or parametro[2] > Limiares[2] or parametro[3] > Limiares[3] or n>Limiares[4]):
             mudar = True
         if (mudar == True):
             return self.mudarFog(server, fogs)

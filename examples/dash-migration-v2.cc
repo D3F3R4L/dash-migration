@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include "ns3/internet-apps-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/tcp-stream-helper.h"
 #include "ns3/tcp-stream-interface.h"
@@ -57,6 +58,7 @@ uint16_t MaxClientsSV=10;
 uint32_t numberOfClients;
 uint32_t simulationId = 0;
 std::vector <uint32_t> SClients {0,0,0,0};
+std::vector <std::string> delays {"0","0","0","0"};
 Address server1Address;
 Address server2Address;
 Address server3Address;
@@ -343,13 +345,17 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
     SClients[j]=serverHelper.NumberOfClients(serverApp, servers.Get(j));
     NS_LOG_UNCOND(SClients[j]);
   }
+  if (SClients[0]==0 and SClients[1]==0 and SClients[2]==0 and SClients[3]==0)
+  {
+    Simulator::Stop();
+  }
 }
 
 void
 politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
   getClientsOnServer(serverApp, serverHelper, servers);
-  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId);
+  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
   std::string bestSv = execute(filename.c_str());
   //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
   //system(filename.c_str());
@@ -410,7 +416,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
     getClientsOnServer(serverApp, serverHelper, servers);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId);
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
     std::string bestSv = execute(filename.c_str());
     //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
     //system(filename.c_str());
@@ -444,6 +450,15 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   Simulator::Schedule(Seconds(1),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
+static void
+PingRtt (std::string context, Time rtt)
+{
+  std::vector <std::string> nodes;
+  nodes = split(context.c_str(), "/");
+  delays[std::stoi(nodes[4])]=ToString(rtt);
+  std::cout << context << " " << ToString(rtt) << std::endl;
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -457,7 +472,7 @@ main (int argc, char *argv[])
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
   int seedValue = 1;
-  uint16_t pol=3;
+  uint16_t pol=0;
 
   //lastRx=[numberOfClients];
 
@@ -560,18 +575,14 @@ main (int argc, char *argv[])
   Ssid ssid = Ssid ("network");
   /* Configure STAs for WLAN*/
 
-  wifiMac.SetType ("ns3::StaWifiMac",
-                    "Ssid", SsidValue (ssid));
+  wifiMac.SetType ("ns3::StaWifiMac","Ssid", SsidValue (ssid));
   NetDeviceContainer staDevices;
   staDevices = wifiHelper.Install (wifiPhy, wifiMac, staContainer);
 
   /* Configure AP for WLAN*/
-  wifiMac.SetType ("ns3::ApWifiMac",
-                    "Ssid", SsidValue (ssid));
+  wifiMac.SetType ("ns3::ApWifiMac","Ssid", SsidValue (ssid));
   NetDeviceContainer apDevice;
   apDevice = wifiHelper.Install (wifiPhy, wifiMac, apNode);
-
-
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue (80));
 
@@ -697,6 +708,21 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   // p2p.EnablePcapAll ("p2p-", true);
   // wifiPhy.EnablePcapAll ("wifi-", true);
 
+  V4PingHelper ping = V4PingHelper (wanInterface.GetAddress (0));
+  ApplicationContainer apps = ping.Install (networkNodes.Get(0));
+  V4PingHelper ping2 = V4PingHelper (wanInterface2.GetAddress (0));
+  apps.Add(ping2.Install (networkNodes.Get(0)));
+  V4PingHelper ping3 = V4PingHelper (wanInterface3.GetAddress (0));
+  apps.Add(ping3.Install (networkNodes.Get(0)));
+  V4PingHelper ping4 = V4PingHelper (wanInterface4.GetAddress (0));
+  apps.Add(ping4.Install (networkNodes.Get(0)));
+  apps.Start (Seconds (2.0));
+
+  // finally, print the ping rtts.
+  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::V4Ping/Rtt",MakeCallback (&PingRtt));
+
+  //Packet::EnablePrinting ();
+
   NodeContainer servers;
   servers.Add(serverNode);
   servers.Add(serverNode2);
@@ -758,7 +784,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
   clientHelper.SetAttribute ("ServerId", UintegerValue (1));
-  clientApps = clientHelper.Install (clients_temp1);
+  clientApps.Add(clientHelper.Install (clients_temp1));
 
   //TcpStreamClientHelper clientHelper3 (server3Address, port);
   clientHelper.SetAttribute ("RemoteAddress", AddressValue (server3Address));
@@ -768,7 +794,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
   clientHelper.SetAttribute ("ServerId", UintegerValue (2));
-  clientApps = clientHelper.Install (clients_temp2);
+  clientApps.Add(clientHelper.Install (clients_temp2));
 
   clientHelper.SetAttribute ("RemoteAddress", AddressValue (cloudAddress));
   clientHelper.SetAttribute ("RemotePort", UintegerValue (port));
@@ -777,13 +803,14 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
   clientHelper.SetAttribute ("ServerId", UintegerValue (3));
-  clientApps = clientHelper.Install (clients_temp3);
+  clientApps.Add(clientHelper.Install (clients_temp3));
   
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
       double startTime = 2.0;
-      clientApps.Get (i)->SetStartTime (Seconds (startTime+(i/100)));
+      clientApps.Get (i)->SetStartTime (Seconds (startTime));
     }
+
 /*
 
   /* Install TCP Receiver on the access point */
@@ -867,9 +894,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients);
-  Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
- //Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
-  Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer);
+  //Simulator::Schedule(Seconds(5),&stopSim,clientHelper,staContainer);
   Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients);
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
   Simulator::Run ();

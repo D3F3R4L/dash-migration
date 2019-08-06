@@ -207,7 +207,6 @@ TcpStreamClientHelper::checkApps(NodeContainer staContainer)
     Ptr<Node> p = staContainer.Get (i);
     Ptr<Application> app = p->GetApplication(0);
     c=app->GetObject<TcpStreamClient> ()->check ();
-    //NS_LOG_UNCOND(c);
     if (c==true)
     {
       closedApps++;
