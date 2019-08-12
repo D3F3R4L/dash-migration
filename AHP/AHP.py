@@ -8,6 +8,7 @@ import csv
 folder=sys.argv[1]
 simu=sys.argv[2]
 delays=[sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6]]
+ip=sys.argv[7]
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)
@@ -15,7 +16,7 @@ ahp = AHP (log=True)
 def main():
   os.chdir(folder)
   concatenarServers()
-  ServersScores=ahp.Politica(Servers)
+  ServersScores=ahp.Politica(Servers,ip)
   ServersScores=list(ServersScores.items())
   ServersScores.sort(key=operator.itemgetter(1))
   print(ServersScores)
@@ -23,7 +24,7 @@ def main():
   ServersScores.sort(key=operator.itemgetter(0))
   line=[str(ServersScores[0][1]),str(ServersScores[1][1]),str(ServersScores[2][1])]
   csv.register_dialect('myDialect',delimiter = ';',quoting=csv.QUOTE_NONE,skipinitialspace=True)
-  file='*sim{simu}_ServerScores.csv'.format(simu=simu)
+  file='sim{simu}_ServerScores.csv'.format(simu=simu)
   with open(file, 'a') as writeFile:
     writer = csv.writer(writeFile, dialect='myDialect')
     writer.writerow(line)
@@ -67,11 +68,12 @@ def concatenarServers():
       next(file)
       for line in file:
         fields = line.split(";")
-        ThroughputValues[j]=float(fields[1])
+        ThroughputValues[j]=float(fields[2])
       j+=1
 
     for i in range(0,len(delays)):
       aux=list(delays[i])
+      print(delays)
       aux=aux[:-10]
       aux.pop(0)
       delays[i] = ''.join(aux)
@@ -79,8 +81,15 @@ def concatenarServers():
 
     for i in range(0,4):
       ServerIP = ServersIP[i]
-      print(ThroughputValues[i])
+      #if i==0 or i==1 or i==2:
+      #StallValues[i]=i
+      if i==3:
+        print('Delays: ',delays)
+        print('ThroughputValues: ',ThroughputValues)
+        print('Stalls: ',StallValues)
+        print('Rebuffers: ',RebufferValues)
       Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
+      #Servers[ServerIP] = [RebufferValues[i],StallValues[i],100-ThroughputValues[i],delays[i]]
     return Servers
 
 if __name__=="__main__":

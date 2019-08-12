@@ -231,6 +231,11 @@ TcpStreamClient::GetTypeId (void)
                    UintegerValue (0),
                    MakeUintegerAccessor (&TcpStreamClient::serverId),
                    MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("PolId",
+                   "The ID of the politica for the client object, for logging purposes",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&TcpStreamClient::polId),
+                   MakeUintegerChecker<uint32_t> ())
   ;
   return tid;
 }
@@ -290,7 +295,7 @@ TcpStreamClient::Initialise (std::string algorithm, uint16_t clientId)
     }
 
   m_algoName = algorithm;
-  InitializeLogFiles (ToString (m_simulationId), ToString (m_clientId), ToString (m_numberOfClients), ToString (serverId));
+  InitializeLogFiles (ToString (m_simulationId), ToString (m_clientId), ToString (m_numberOfClients), ToString (serverId), ToString (polId));
 
 }
 
@@ -476,27 +481,30 @@ TcpStreamClient::PlaybackHandle ()
 }
 
 void
-TcpStreamClient::SetRemote (Address ip, uint16_t port)
+TcpStreamClient::SetRemote (Address ip, uint16_t port, uint16_t polId)
 { //NS_LOG_UNCOND("client Initialise 238");
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = ip;
   m_peerPort = port;
+  polId=polId;
 }
 
 void
-TcpStreamClient::SetRemote (Ipv4Address ip, uint16_t port)
+TcpStreamClient::SetRemote (Ipv4Address ip, uint16_t port, uint16_t polId)
 {
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = Address (ip);
   m_peerPort = port;
+  polId=polId;
 }
 
 void
-TcpStreamClient::SetRemote (Ipv6Address ip, uint16_t port)
+TcpStreamClient::SetRemote (Ipv6Address ip, uint16_t port, uint16_t polId)
 {
   NS_LOG_FUNCTION (this << ip << port);
   m_peerAddress = Address (ip);
   m_peerPort = port;
+  polId=polId;
 }
 
 void
@@ -726,36 +734,36 @@ TcpStreamClient::LogPlayback ()
 }
 
 void
-TcpStreamClient::InitializeLogFiles (std::string simulationId, std::string clientId, std::string numberOfClients, std::string serverId)
+TcpStreamClient::InitializeLogFiles (std::string simulationId, std::string clientId, std::string numberOfClients, std::string serverId, std::string pol)
 {
   NS_LOG_FUNCTION (this);
 
-  std::string dLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "downloadLog.csv";
+  std::string dLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "downloadLog.csv";
   downloadLog.open (dLog.c_str ());
   downloadLog << "Segment_Index;Download_Request_Sent;Download_Start;Download_End;Segment_Size;Download_OK\n";
   downloadLog.flush ();
 
-  std::string pLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "playbackLog.csv";
+  std::string pLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "playbackLog.csv";
   playbackLog.open (pLog.c_str ());
   playbackLog << "Segment_Index;Playback_Start;Quality_Level;Server_Address\n";
   playbackLog.flush ();
 
-  std::string aLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "adaptationLog.csv";
+  std::string aLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "adaptationLog.csv";
   adaptationLog.open (aLog.c_str ());
   adaptationLog << "Segment_Index;Rep_Level;Decision_Point_Of_Time;Case;DelayCase\n";
   adaptationLog.flush ();
 
-  std::string bLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "bufferLog.csv";
+  std::string bLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "bufferLog.csv";
   bufferLog.open (bLog.c_str ());
   bufferLog << "Time_Now;Buffer_Level \n";
   bufferLog.flush ();
 
-  std::string tLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "throughputLog.csv";
+  std::string tLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "throughputLog.csv";
   throughputLog.open (tLog.c_str ());
   throughputLog << "Time_Now;MBytes_Received;Server_Address\n";
   throughputLog.flush ();
 
-  std::string buLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "bufferUnderrunLog.csv";
+  std::string buLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "bufferUnderrunLog.csv";
   bufferUnderrunLog.open (buLog.c_str ());
   bufferUnderrunLog << ("Buffer_Underrun_Started_At;Until;Buffer_Underrun_Duration;bufferUnderrunTotalTime;Server_Address \n");
   bufferUnderrunLog.flush ();

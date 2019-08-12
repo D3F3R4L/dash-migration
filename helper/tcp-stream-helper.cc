@@ -94,25 +94,28 @@ TcpStreamServerHelper::InstallPriv (Ptr<Node> node) const
   return app;
 }
 
-TcpStreamClientHelper::TcpStreamClientHelper (Address address, uint16_t port)
+TcpStreamClientHelper::TcpStreamClientHelper (Address address, uint16_t port, uint16_t pol)
 { //NS_LOG_UNCOND("clienthelper construtor 77");
   m_factory.SetTypeId (TcpStreamClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (address));
   SetAttribute ("RemotePort", UintegerValue (port));
+  SetAttribute ("PolId", UintegerValue (pol));
 }
 
-TcpStreamClientHelper::TcpStreamClientHelper (Ipv4Address address, uint16_t port)
+TcpStreamClientHelper::TcpStreamClientHelper (Ipv4Address address, uint16_t port, uint16_t pol)
 { //NS_LOG_UNCOND("clienthelper construtor 84");
   m_factory.SetTypeId (TcpStreamClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (Address(address)));
   SetAttribute ("RemotePort", UintegerValue (port));
+  SetAttribute ("PolId", UintegerValue (pol));
 }
 
-TcpStreamClientHelper::TcpStreamClientHelper (Ipv6Address address, uint16_t port)
+TcpStreamClientHelper::TcpStreamClientHelper (Ipv6Address address, uint16_t port, uint16_t pol)
 { //NS_LOG_UNCOND("clienthelper construtor 91");
   m_factory.SetTypeId (TcpStreamClient::GetTypeId ());
   SetAttribute ("RemoteAddress", AddressValue (Address(address)));
   SetAttribute ("RemotePort", UintegerValue (port));
+  SetAttribute ("PolId", UintegerValue (pol));
 }
 
 void

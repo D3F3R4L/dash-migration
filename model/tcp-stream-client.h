@@ -71,19 +71,19 @@ public:
    * \param ip remote IPv4 address
    * \param port remote port
    */
-  void SetRemote (Ipv4Address ip, uint16_t port);
+  void SetRemote (Ipv4Address ip, uint16_t port, uint16_t polId);
   /**
    * \brief Set the remote address and port
    * \param ip remote IPv6 address
    * \param port remote port
    */
-  void SetRemote (Ipv6Address ip, uint16_t port);
+  void SetRemote (Ipv6Address ip, uint16_t port, uint16_t polId);
   /**
    * \brief Set the remote address and port
    * \param ip remote IP address
    * \param port remote port
    */
-  void SetRemote (Address ip, uint16_t port);
+  void SetRemote (Address ip, uint16_t port, uint16_t polId);
   void HandoverApplication (Address ip);
   bool check ();
   void SetHandover (Address ip);
@@ -257,7 +257,7 @@ private:
    * The output streams defined in TcpStreamClient are opened,
    * and log files containing the used adaptation algorithm are created for output.
    */
-  void InitializeLogFiles (std::string simulationId, std::string clientId, std::string numberOfClients, std::string serverId);
+  void InitializeLogFiles (std::string simulationId, std::string clientId, std::string numberOfClients, std::string serverId, std::string polId);
 
   uint32_t m_dataSize; //!< packet payload size
   uint8_t *m_data; //!< packet payload data
@@ -270,6 +270,7 @@ private:
 
   uint16_t m_clientId; //!< The Id of this client, for logging purposes
   uint16_t serverId;
+  uint16_t polId;
   uint16_t m_simulationId; //!< The Id of this simulation, for logging purposes
   uint16_t m_numberOfClients; //!< The total number of clients for this simulation, for logging purposes
   std::string m_segmentSizeFilePath; //!< The relative path (from ns-3.x directory) to the file containing the segment sizes in bytes

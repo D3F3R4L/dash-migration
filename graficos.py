@@ -8,7 +8,8 @@ import argparse
 parser = argparse.ArgumentParser(description='Script to make graphs for dash migration simulation')
 parser.add_argument('--segmentfile','-seg',default="segmentSizesBigBuck1A.txt", type=str,help='Name of segmentfile used.Default is segmentSizesBigBuck1A.txt')
 parser.add_argument('--adaptAlgo','-Adpt',default="festive", type=str,help='Name of adaptation algorithm used.Default is festive, possible values are: festive, panda, tobasco')
-parser.add_argument('--Clients','-c', type=int,help='Number of Clientsin the simulation')
+parser.add_argument('--Clients','-c', type=int,help='Number of Clients in the simulation')
+parser.add_argument('--Politica','-p', type=int,help='Politica used in the simulation')
 parser.add_argument('--runs','-r', type=int,default=1,help='Number of simulations to make the graphs. Default is 1')
 args = parser.parse_args()
 if args.adaptAlgo!="festive" and args.adaptAlgo!="panda" and args.adaptAlgo!="tobasco":
@@ -20,6 +21,7 @@ runs=args.runs
 segmentfile=args.segmentfile
 adaptAlgo=args.adaptAlgo
 numberOfClients=args.Clients
+politica=args.Politica
 
 def main():
   print('Beginning')
@@ -28,7 +30,7 @@ def main():
   collums= file.readline().split(" ")
   numSegments=len(collums)-1
   #os.chdir('..')
-  folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
+  folder='dash-log-files/{algo}/{num}/{pol}'.format(algo=adaptAlgo,num=numberOfClients,pol=politica)
   os.chdir(folder)
   #bufferUnderrunGraphs()
   #throughputGraphs(numSegments)
@@ -233,9 +235,15 @@ def throughtputServer():
       j+=1
     i+=1
   for k in range(0,4):
-    Times.append(sum(np.array(TimesAux[k::4]))/runs)
-    Throughputs.append(sum(np.array(ThroughputsAux[k::4]))/runs)
-    MMEs.append(sum(np.array(MMEsAux[k::4]))/runs)
+    Times.append(min(TimesAux , key=len))
+    aux=ThroughputsAux[k::4]
+    for h in range (0,len(aux)):
+      aux[h]=aux[h][0:len(Times[k])]
+    Throughputs.append(sum(np.array(aux))/runs)
+    aux=MMEsAux[k::4]
+    for h in range (0,len(aux)):
+      aux[h]=aux[h][0:len(Times[k])]
+    MMEs.append(sum(np.array(aux))/runs)
   plt.plot(Times[0],Throughputs[0],color='r')
   plt.plot(Times[1],Throughputs[1],color='g')
   plt.plot(Times[2],Throughputs[2],color='b')

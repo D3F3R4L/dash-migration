@@ -46,12 +46,12 @@ class AHP():
 
     def Influenciacompeso(self, parametro):
         matriz = np.array([
-            [1, 2, 3, 4],
-            [1 / 2, 1, 3, 4],
-            [1 / 3, 1 / 3, 1, 4],
-            [1 / 4, 1 / 4, 1 / 4, 1]
+            [1,   2,   3,   4],
+            [1/2, 1,   3,   4],
+            [1/3, 1/3, 1,   4],
+            [1/4, 1/4, 1/4, 1]
         ])
-        precisao = 3
+        precisao = 10
         peso = AHP.AutoValor(matriz, precisao)
         prioridadesGlobais = {}
         parametros = []
@@ -79,35 +79,39 @@ class AHP():
             dicionarionorma[idfog] = normaliza
         return dicionarionorma
 
-    def Distanciaeuclidiana(self, parametro):
+    def Distanciaeuclidiana(self, parametro,ip):
         dicdistancia = {}
-        atual = parametro["4.0.0.1"]
-        del (parametro["4.0.0.1"])
+        atual = parametro[ip]
+        del (parametro[ip])
 
         for idfog in parametro:
             parametros = np.array(parametro[idfog]).flat
             soma=0
             for i in range(0, 4):
-                soma += math.pow(atual[i] - parametros[i], 2)
+                print(atual[i])
+                print(parametros[i])
+                soma += atual[i] - parametros[i]
 
-            dicdistancia[idfog] = math.sqrt(soma)
+            dicdistancia[idfog] = soma
         return dicdistancia
 
     def score(self, parametro):
-        anterior = -1000000
+        anterior = 0
         fogid=0
         for idfog in parametro:
             parametros = parametro[idfog]
-            if parametros < anterior :
+            if parametros > anterior :
 
                 fogid = idfog
                 anterior = parametro[idfog]
         retorno = [fogid, anterior]
         return retorno
 
-    def Politica(self, matrizesdepreferencias):
+    def Politica(self, matrizesdepreferencias,ip):
+        ip=ip
         matrizesdepreferencias = matrizesdepreferencias
         influ = self.Influenciacompeso(matrizesdepreferencias)
         normalizado = self.Normaliza(influ)
-        distancia = self.Distanciaeuclidiana(normalizado)
+        distancia = self.Distanciaeuclidiana(normalizado,ip)
+        print(self.score(distancia))
         return distancia

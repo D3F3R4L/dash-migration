@@ -116,7 +116,7 @@ public:
    * \param ip The IP address of the remote tcp stream server
    * \param port The port number of the remote tcp stream server
    */
-  TcpStreamClientHelper (Address ip, uint16_t port);
+  TcpStreamClientHelper (Address ip, uint16_t port, uint16_t polId);
   /**
    * Create TcpStreamClientHelper which will make life easier for people trying
    * to set up simulations with echos.
@@ -124,7 +124,7 @@ public:
    * \param ip The IPv4 address of the remote tcp stream server
    * \param port The port number of the remote tcp stream server
    */
-  TcpStreamClientHelper (Ipv4Address ip, uint16_t port);
+  TcpStreamClientHelper (Ipv4Address ip, uint16_t port, uint16_t polId);
   /**
    * Create TcpStreamClientHelper which will make life easier for people trying
    * to set up simulations with echos.
@@ -132,7 +132,7 @@ public:
    * \param ip The IPv6 address of the remote tcp stream server
    * \param port The port number of the remote tcp stream server
    */
-  TcpStreamClientHelper (Ipv6Address ip, uint16_t port);
+  TcpStreamClientHelper (Ipv6Address ip, uint16_t port, uint16_t polId);
 
   /**
    * Record an attribute to be set in each Application after it is is created.

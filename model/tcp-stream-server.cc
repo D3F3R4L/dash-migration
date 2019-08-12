@@ -268,9 +268,9 @@ TcpStreamServer::serverThroughput ()
 {
   Time now = Simulator::Now ();
   double Throughput = totalBytesSend * (double) 8 / 1e6;
-  std::cout << now.GetSeconds () << "s: \t" << Throughput << " Mbit/s" << std::endl;
+  //std::cout << now.GetSeconds () << "s: \t" << Throughput << " Mbit/s" << std::endl;
   MME = MME + (2*(Throughput-MME)/(n+1));
-  std::cout << "MME: \t" << MME << " Mbit/s" << std::endl;
+  //std::cout << "MME: \t" << MME << " Mbit/s" << std::endl;
   totalBytesSend=0;
   LogThroughput (Throughput, MME);
   return Throughput;

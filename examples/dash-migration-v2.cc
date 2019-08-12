@@ -263,25 +263,25 @@ getStartTime(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper
 }
 
 void
-InitializeLogFiles (std::string dashLogDirectory, std::string m_algoName,std::string numberOfClients, std::string simulationId)
+InitializeLogFiles (std::string dashLogDirectory, std::string m_algoName,std::string numberOfClients, std::string simulationId,std::string pol)
 {
   NS_LOG_UNCOND("Inicializando log");
-  std::string SLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "StallLog.csv";
+  std::string SLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/" + pol + "/sim" + simulationId + "_" + "StallLog.csv";
   StallsLog.open (SLog.c_str ());
   StallsLog << "Time_Now;SV1_Stalls;SV1_Stalls_MME;SV2_Stalls;SV2_Stalls_MME;SV3_Stalls;SV3_Stalls_MME;Cloud_Stalls;Cloud_Stalls_MME\n";
   StallsLog.flush ();
 
-  std::string RLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "RebufferLog.csv";
+  std::string RLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "RebufferLog.csv";
   RebufferLog.open (RLog.c_str ());
   RebufferLog << "Time_Now;SV1_Rebuffer;SV1_Rebuffer_MME;SV2_Rebuffer;SV2_Rebuffer_MME;SV3_Rebuffer;SV3_Rebuffer_MME;Cloud_Rebuffer;Cloud_Rebuffer_MME\n";
   RebufferLog.flush ();
 
-  std::string STLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "PlaybackStartTime.csv";
+  std::string STLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "PlaybackStartTime.csv";
   StartTimeLog.open (STLog.c_str ());
   StartTimeLog << "SV1_PlaybackStartTime;SV1_PlaybackStartTime_MME;SV2_PlaybackStartTime;SV2_PlaybackStartTime_MME;SV3_PlaybackStartTime;SV3_PlaybackStartTime_MME;Cloud_PlaybackStartTime;Cloud_PlaybackStartTime_MME\n";
   StartTimeLog.flush ();
 
-  std::string SsLog = dashLogDirectory + m_algoName + "/" +  numberOfClients  + "/sim" + simulationId + "_" + "ServerScores.csv";
+  std::string SsLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "ServerScores.csv";
   ServerScoreLog.open (SsLog.c_str ());
   ServerScoreLog << "SV1_Score;SV2_Score;SV3_Score;Cloud_Score;\n";
   ServerScoreLog.flush ();
@@ -354,17 +354,16 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
 void
 politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
-  getClientsOnServer(serverApp, serverHelper, servers);
-  std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
-  //std::string bestSv = execute(filename.c_str());
-  std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-  system(filename.c_str());
-  std::vector <std::string> BestServers;
-  BestServers = split(bestSv.c_str(), " ");
-
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+    getClientsOnServer(serverApp, serverHelper, servers);
+    std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip;
+    //std::string bestSv = execute(filename.c_str());
+    std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+    system(filename.c_str());
+    std::vector <std::string> BestServers;
+    BestServers = split(bestSv.c_str(), " "); 
     for (uint j = 0; j < BestServers.size(); j++)
     {
       Address SvIp;
@@ -465,14 +464,14 @@ main (int argc, char *argv[])
 
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
-  simulationId = 1;
+  simulationId = 0;
   numberOfClients = 4;
   uint32_t numberOfServers = 5;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
   int seedValue = 1;
-  uint16_t pol=0;
+  uint16_t pol=2;
 
   //lastRx=[numberOfClients];
 
@@ -668,7 +667,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   const char * tobascoDir = tobascoDirTmp.c_str();
   //const char * tobascoDir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/").c_str();
   mkdir (tobascoDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/";
+  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/" + ToString (pol) + "/";
   //const char * dir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/" + ToString (numberOfClients) + "/").c_str();
   const char * dir = dirTmp.c_str();
   mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -678,7 +677,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   std::cout << dir << "\n";
 
   std::ofstream clientPosLog;
-  std::string clientPos = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/" + "sim" + ToString (simulationId) + "_"  + "clientPos.txt";
+  std::string clientPos = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/" + ToString (pol) + "/" + "sim" + ToString (simulationId) + "_"  + "clientPos.txt";
   clientPosLog.open (clientPos.c_str());
   std::cout << clientPos << "\n";
   NS_ASSERT_MSG (clientPosLog.is_open(), "Couldn't open clientPosLog file");
@@ -768,7 +767,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
     }
 
   /* Install TCP/UDP Transmitter on the station */
-  TcpStreamClientHelper clientHelper (server1Address, port);
+  TcpStreamClientHelper clientHelper (server1Address, port,pol);
   clientHelper.SetAttribute ("SegmentDuration", UintegerValue (segmentDuration));
   clientHelper.SetAttribute ("SegmentSizeFilePath", StringValue (segmentSizeFilePath));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
@@ -875,7 +874,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   	}
   }
   
-  InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfClients),ToString(simulationId));
+  InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfClients),ToString(simulationId),ToString(pol));
 
   NS_LOG_INFO ("Run Simulation.");
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfClients);
