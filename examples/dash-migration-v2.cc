@@ -471,7 +471,7 @@ main (int argc, char *argv[])
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
   int seedValue = 1;
-  uint16_t pol=2;
+  uint16_t pol=0;
 
   //lastRx=[numberOfClients];
 
@@ -667,9 +667,13 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   const char * tobascoDir = tobascoDirTmp.c_str();
   //const char * tobascoDir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/").c_str();
   mkdir (tobascoDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/" + ToString (pol) + "/";
+  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/";
   //const char * dir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/" + ToString (numberOfClients) + "/").c_str();
   const char * dir = dirTmp.c_str();
+  mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfClients) + "/" + ToString (pol) + "/";
+  //const char * dir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/" + ToString (numberOfClients) + "/").c_str();
+  dir = dirTmp.c_str();
   mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   std::cout << mylogsDir << "\n";

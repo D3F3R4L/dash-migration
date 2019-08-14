@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import os
 import glob
+import operator
 import argparse
 
 parser = argparse.ArgumentParser(description='Script to make graphs for dash migration simulation')
 parser.add_argument('--segmentfile','-seg',default="segmentSizesBigBuck1A.txt", type=str,help='Name of segmentfile used.Default is segmentSizesBigBuck1A.txt')
 parser.add_argument('--adaptAlgo','-Adpt',default="festive", type=str,help='Name of adaptation algorithm used.Default is festive, possible values are: festive, panda, tobasco')
 parser.add_argument('--Clients','-c', type=int,help='Number of Clients in the simulation')
-parser.add_argument('--Politica','-p', type=int,help='Politica used in the simulation')
+#parser.add_argument('--Politica','-p', type=int,help='Politica used in the simulation')
 parser.add_argument('--runs','-r', type=int,default=1,help='Number of simulations to make the graphs. Default is 1')
 args = parser.parse_args()
 if args.adaptAlgo!="festive" and args.adaptAlgo!="panda" and args.adaptAlgo!="tobasco":
@@ -21,7 +22,13 @@ runs=args.runs
 segmentfile=args.segmentfile
 adaptAlgo=args.adaptAlgo
 numberOfClients=args.Clients
-politica=args.Politica
+#politica=args.Politica
+
+throughtputTotals=[]
+timeTotals=[]
+MMEsTotals=[]
+qualityLevelTotals=[]
+
 
 def main():
   print('Beginning')
@@ -30,14 +37,23 @@ def main():
   collums= file.readline().split(" ")
   numSegments=len(collums)-1
   #os.chdir('..')
-  folder='dash-log-files/{algo}/{num}/{pol}'.format(algo=adaptAlgo,num=numberOfClients,pol=politica)
+  folder='dash-log-files/{algo}/{num}'.format(algo=adaptAlgo,num=numberOfClients)
+  folders=os.listdir(folder)
   os.chdir(folder)
-  #bufferUnderrunGraphs()
-  #throughputGraphs(numSegments)
-  qualityGraphs(numSegments)
-  throughtputServer()
-  StallsGraphs()
-  RebufferGraphs()
+  folders.sort(key=operator.itemgetter(0))
+  print(folders)
+  for i in folders:
+    #folder='dash-log-files/{algo}/{num}/{pol}'.format(algo=adaptAlgo,num=numberOfClients,pol=i)
+    print('------Politica ',i,'------')
+    os.chdir(i)
+    #bufferUnderrunGraphs()
+    #throughputGraphs(numSegments)
+    qualityGraphs(numSegments)
+    throughtputServer()
+    StallsGraphs()
+    RebufferGraphs()
+    os.chdir('..')
+  graphtotals(numSegments)
   print('Finished')
   #print(os.getcwd())
   #print(os.listdir())
@@ -236,25 +252,29 @@ def throughtputServer():
     i+=1
   for k in range(0,4):
     Times.append(min(TimesAux , key=len))
+    timeTotals.append(Times[k])
     aux=ThroughputsAux[k::4]
     for h in range (0,len(aux)):
       aux[h]=aux[h][0:len(Times[k])]
     Throughputs.append(sum(np.array(aux))/runs)
+    throughtputTotals.append(Throughputs[k])
     aux=MMEsAux[k::4]
     for h in range (0,len(aux)):
       aux[h]=aux[h][0:len(Times[k])]
     MMEs.append(sum(np.array(aux))/runs)
-  plt.plot(Times[0],Throughputs[0],color='r')
-  plt.plot(Times[1],Throughputs[1],color='g')
-  plt.plot(Times[2],Throughputs[2],color='b')
-  plt.plot(Times[3],Throughputs[3],color='y')
+    MMEsTotals.append(MMEs[k])
+  plt.plot(Times[0],Throughputs[0],color='r',ls='--',lw=3)
+  plt.plot(Times[1],Throughputs[1],color='g',ls='-.',lw=3)
+  plt.plot(Times[2],Throughputs[2],color='b',ls=':',lw=3)
+  plt.plot(Times[3],Throughputs[3],color='y',ls='-',lw=1)
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
-  red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Tier-2 EP-1')
-  green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
-  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-3')
-  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1 Cloud')
+  red_line = mlines.Line2D([], [], color='Red',ls='--',lw=3, label='Tier-2 EP-1')
+  green_line = mlines.Line2D([], [], color='g',ls='-.',lw=3, label='Tier-2 EP-2')
+  blue_line = mlines.Line2D([], [], color='b',ls=':',lw=3, label='Tier-2 EP-3')
+  yellow_line = mlines.Line2D([], [], color='y',ls='-',lw=2, label='Tier-1 Cloud')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
+  plt.grid(True)
   plt.title("Server Throughput")
   save = 'ServerThroughput.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
@@ -272,6 +292,7 @@ def throughtputServer():
   yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1 Cloud')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Exponential Moving Average of Server Throughput")
+  plt.grid(True)
   save = 'MMEServerThroughput.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -373,6 +394,10 @@ def qualityGraphs(numSegments):
   S2ClientsMean=np.mean(S2ClientsMean,axis=0)
   S3ClientsMean=np.mean(S3ClientsMean,axis=0)
   S4ClientsMean=np.mean(S4ClientsMean,axis=0)
+  qualityLevelTotals.append(S1QualityMean)
+  qualityLevelTotals.append(S2QualityMean)
+  qualityLevelTotals.append(S3QualityMean)
+  qualityLevelTotals.append(S4QualityMean)
   x=np.arange(0,numSegments)
   fig,ax =plt.subplots()
   p1,=plt.plot(x,S1QualityMean,color='r',markersize=15, label='Tier-2 EP-1')
@@ -385,7 +410,7 @@ def qualityGraphs(numSegments):
   green_line = mlines.Line2D([], [], color='g',markersize=15, label='{mean} Kbps'.format(mean=np.mean(S2QualityMean)))
   blue_line = mlines.Line2D([], [], color='b',markersize=15, label='{mean} Kbps'.format(mean=np.mean(S3QualityMean)))
   yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='{mean} Kbps'.format(mean=np.mean(S4QualityMean)))
-  plt.yticks( [400,650,1000,1500,2250,3400,4700,6000], ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   plt.title("Video Bitrate")
   plt.legend(title='Bitrate Mean',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
@@ -412,7 +437,7 @@ def qualityGraphs(numSegments):
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
   red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=np.mean(bestClientQuality)))
-  plt.yticks( [400,650,1000,1500,2250,3400,4700,6000], ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
   plt.grid(True)
@@ -441,7 +466,7 @@ def qualityGraphs(numSegments):
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
   red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=np.mean(worstClientQuality)))
-  plt.yticks( [400,650,1000,1500,2250,3400,4700,6000], ('400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
   plt.grid(True)
@@ -488,7 +513,7 @@ def divisor(vet1,vet2):
   resp=[]
   while j<len(vet1):
     if vet2[j]==0:
-      resp.append(0)
+      resp.append(-1)
     else:
       resp.append(vet1[j]/vet2[j])
     j+=1
@@ -596,9 +621,72 @@ def barGraphs(collums, graph):
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 
+def graphtotals(numSegments):
+  for i in range (0,4):
+    plt.plot(timeTotals[i],throughtputTotals[i],color='r',ls='--',lw=2)
+    plt.plot(timeTotals[i+4],throughtputTotals[i+4],color='g',ls='-.',lw=2)
+    plt.plot(timeTotals[i+8],throughtputTotals[i+8],color='b',ls=':',lw=2)
+    plt.xlabel('Seconds')
+    plt.ylabel('Mb/s')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='AHP')
+    green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
+    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
+    plt.legend(title='Political Comparasion',handles=[red_line,green_line,blue_line])
+    name='Server Throughput of Tier-2 EP-{pol}'.format(pol=(i+1))
+    if i==3:
+      name='Server Throughput of Tier-1 Cloud'
+    plt.grid(True)
+    plt.title(name)
+    plt.savefig(name,bbox_inches="tight",dpi=300)
+    plt.close()
+
+  for i in range (0,4):
+    plt.plot(timeTotals[i],MMEsTotals[i],color='r',ls='--',lw=2)
+    plt.plot(timeTotals[i+4],MMEsTotals[i+4],color='g',ls='-.',lw=2)
+    plt.plot(timeTotals[i+8],MMEsTotals[i+8],color='b',ls=':',lw=2)
+    plt.xlabel('Seconds')
+    plt.ylabel('Mb/s')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='AHP')
+    green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
+    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
+    plt.legend(title='Political Comparasion',handles=[red_line,green_line,blue_line])
+    name='EMA of Server Throughput of Tier-2 EP-{pol}'.format(pol=(i+1))
+    if i==3:
+      name='EMA of Server Throughput of Tier-1 Cloud'
+    plt.grid(True)
+    plt.title(name)
+    plt.savefig(name,bbox_inches="tight",dpi=300)
+    plt.close()
+
+  for i in range (0,4):
+    x=np.arange(0,numSegments)
+    fig,ax =plt.subplots()
+    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='AHP')
+    p2,=plt.plot(x,qualityLevelTotals[i+4],color='g',ls='-.',lw=3, label='Greedy')
+    p3,=plt.plot(x,qualityLevelTotals[i+8],color='b',ls=':',lw=3, label='Random')
+    plt.xlabel('Segments')
+    plt.ylabel('Video bitrate(Kbps)')
+    red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-2 EP-1')
+    green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
+    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-3')
+    yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1 Cloud')
+    plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
+    l1=plt.legend(title='Political Comparasion',handles=[p1,p2,p3],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
+    save = 'Video Bitrate of Tier-2 EP-{pol}'.format(pol=(i+1))
+    if i==3:
+      save = 'Video Bitrate of Tier-1 Cloud'
+    plt.title(save)
+    plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
+    plt.grid(True)
+    ax.add_artist(l1)
+    plt.savefig(save,bbox_inches="tight",dpi=300)
+    plt.close()
+
 def toBitrate(vet):
   for i in range(0,len(vet)):
-    if vet[i]<=1:
+    if vet[i]==-1:
+      vet[i]=0
+    elif vet[i]<=1:
       vet[i]=250*vet[i]+400
     elif vet[i]<=2:
       vet[i]=350*(vet[i]-1)+650
