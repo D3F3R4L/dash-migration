@@ -169,52 +169,6 @@ getThropughputServer(ApplicationContainer serverApp, TcpStreamServerHelper serve
   Simulator::Schedule(Seconds(1),&getThropughputServer,serverApp, serverHelper,servers);
 }
 
-void
-getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
-{
-  for (uint i = 0; i < numberOfClients; i++)
-  {
-    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    if(ip=="1.0.0.1")
-    {
-      sv1+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-      StallMMESV1=StallMMESV1 + (2*(sv1-StallMMESV1)/(n+1));
-      Tsv1+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-      RebufferMMESV1=RebufferMMESV1 + (2*(Tsv1-RebufferMMESV1)/(n+1));
-    }
-    else
-    {
-      if(ip=="2.0.0.1")
-      {
-        sv2+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-        StallMMESV2=StallMMESV2 + (2*(sv2-StallMMESV2)/(n+1));
-        Tsv2+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-        RebufferMMESV2=RebufferMMESV2 + (2*(Tsv2-RebufferMMESV2)/(n+1));
-      }
-      else
-      {
-        if(ip=="3.0.0.1")
-        {
-          sv3+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-          StallMMESV3=StallMMESV3 + (2*(sv3-StallMMESV3)/(n+1));
-          Tsv3+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-          RebufferMMESV3=RebufferMMESV3 + (2*(Tsv3-RebufferMMESV3)/(n+1));
-        }
-        else
-        {
-          cloud+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-          StallMMECloud=StallMMECloud + (2*(cloud-StallMMECloud)/(n+1));
-          Tcloud+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-          RebufferMMECloud=RebufferMMECloud + (2*(Tcloud-RebufferMMECloud)/(n+1));
-        }
-      }
-    }
-  }
-  LogStall(sv1,sv2,sv3,cloud);
-  LogRebuffer(Tsv1,Tsv2,Tsv3,Tcloud);
-  Simulator::Schedule(Seconds(1),&getStall,clientApps,clientHelper,clients);
-}
-
 static void
 ServerHandover(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Address server2Address, std::vector <std::pair <Ptr<Node>, std::string> > clients, uint16_t n)
 {
@@ -334,6 +288,55 @@ split(const char *phrase, std::string delimiter){
     }
     list.push_back(s);
     return list;
+}
+
+void
+getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
+{
+  std::string filename = "python3 src/dash-migration/StallRebuffer.py " + dirTmp +" "+ToString(simulationId);
+  //std::string bestSv = execute(filename.c_str());
+  system(filename.c_str());
+  for (uint i = 0; i < numberOfClients; i++)
+  {
+    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+    if(ip=="1.0.0.1")
+    {
+      sv1+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
+      StallMMESV1=StallMMESV1 + (2*(sv1-StallMMESV1)/(n+1));
+      Tsv1+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
+      RebufferMMESV1=RebufferMMESV1 + (2*(Tsv1-RebufferMMESV1)/(n+1));
+    }
+    else
+    {
+      if(ip=="2.0.0.1")
+      {
+        sv2+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
+        StallMMESV2=StallMMESV2 + (2*(sv2-StallMMESV2)/(n+1));
+        Tsv2+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
+        RebufferMMESV2=RebufferMMESV2 + (2*(Tsv2-RebufferMMESV2)/(n+1));
+      }
+      else
+      {
+        if(ip=="3.0.0.1")
+        {
+          sv3+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
+          StallMMESV3=StallMMESV3 + (2*(sv3-StallMMESV3)/(n+1));
+          Tsv3+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
+          RebufferMMESV3=RebufferMMESV3 + (2*(Tsv3-RebufferMMESV3)/(n+1));
+        }
+        else
+        {
+          cloud+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
+          StallMMECloud=StallMMECloud + (2*(cloud-StallMMECloud)/(n+1));
+          Tcloud+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
+          RebufferMMECloud=RebufferMMECloud + (2*(Tcloud-RebufferMMECloud)/(n+1));
+        }
+      }
+    }
+  }
+  LogStall(sv1,sv2,sv3,cloud);
+  LogRebuffer(Tsv1,Tsv2,Tsv3,Tcloud);
+  Simulator::Schedule(Seconds(1),&getStall,clientApps,clientHelper,clients);
 }
 
 void
@@ -749,17 +752,17 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   
   for (uint i = 0; i < numberOfClients; i++)
     {
-      if(i<numberOfClients/4)
+      if(i<(numberOfClients+(4-(numberOfClients % 4)))/4)
       {
         clients_temp0.push_back(clients[i]);
       }
       else 
-        if(i<(2*numberOfClients)/4)
+        if(i<2*(numberOfClients+(4-(numberOfClients % 4)))/4)
           {
             clients_temp1.push_back(clients[i]);
           }
         else
-          if(i<(3*numberOfClients)/4)
+          if(i<3*(numberOfClients+(4-(numberOfClients % 4)))/4)
           {
             clients_temp2.push_back(clients[i]);
           }
