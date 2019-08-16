@@ -66,7 +66,13 @@ TcpStreamClient::Controller (controllerEvent event)
   NS_LOG_FUNCTION (this);
   NS_LOG_UNCOND(m_currentPlaybackIndex);
   if (state == initial)
-    { NS_LOG_UNCOND(m_segmentCounter); NS_LOG_UNCOND(m_peerAddress);
+    { 
+      if (handover)
+      {
+        HandoverApplication(newip);
+        handover=false;
+      }
+      NS_LOG_UNCOND(m_segmentCounter); NS_LOG_UNCOND(m_peerAddress);
       RequestRepIndex ();
       state = downloading;
       Send (m_videoData.segmentSize.at (m_currentRepIndex).at (m_segmentCounter));
@@ -444,6 +450,7 @@ TcpStreamClient::PlaybackHandle ()
       bufferUnderrunCount++;
       m_bufferUnderrun = true;
       underrunBegin = timeNow / (double)1000000;
+      bufferUnderrunLog << std::setfill (' ') << std::setw (0) << Ipv4Address::ConvertFrom (m_peerAddress) << ";";
       bufferUnderrunLog << std::setfill (' ') << std::setw (0) << timeNow / (double)1000000 << ";";
       bufferUnderrunLog.flush ();
       return true;
@@ -460,8 +467,8 @@ TcpStreamClient::PlaybackHandle ()
           bufferUnderrunTotalTime = bufferUnderrunTotalTime + delta;
           bufferUnderrunLog << std::setfill (' ') << std::setw (0) << timeNow / (double)1000000 << ";";
           bufferUnderrunLog << std::setfill (' ') << std::setw (0) << delta << ";";
-          bufferUnderrunLog << std::setfill (' ') << std::setw (0) << bufferUnderrunTotalTime << ";";
-          bufferUnderrunLog << std::setfill (' ') << std::setw (0) << Ipv4Address::ConvertFrom (m_peerAddress) << ";\n";
+          bufferUnderrunLog << std::setfill (' ') << std::setw (0) << bufferUnderrunTotalTime << ";\n";
+          //bufferUnderrunLog << std::setfill (' ') << std::setw (0) << Ipv4Address::ConvertFrom (m_peerAddress) << ";\n";
           bufferUnderrunLog.flush ();
         }
       m_playbackData.playbackStart.push_back (timeNow);
@@ -612,6 +619,7 @@ void
 TcpStreamClient::StopApplication ()
 {
   NS_LOG_FUNCTION (this);
+  state = terminal;
   //NS_LOG_UNCOND("StopApplication antes do final");
   if (m_socket != 0)
     {
@@ -765,7 +773,7 @@ TcpStreamClient::InitializeLogFiles (std::string simulationId, std::string clien
 
   std::string buLog = dashLogDirectory + m_algoName + "/" +  numberOfClients + "/" + pol + "/sim" + simulationId + "_" + "cl" + clientId + "_" + "server" + serverId + "_" + "bufferUnderrunLog.csv";
   bufferUnderrunLog.open (buLog.c_str ());
-  bufferUnderrunLog << ("Buffer_Underrun_Started_At;Until;Buffer_Underrun_Duration;bufferUnderrunTotalTime;Server_Address \n");
+  bufferUnderrunLog << ("Server_Address;Buffer_Underrun_Started_At;Until;Buffer_Underrun_Duration;bufferUnderrunTotalTime\n");
   bufferUnderrunLog.flush ();
 }
 

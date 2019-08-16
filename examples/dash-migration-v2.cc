@@ -49,6 +49,14 @@ double StallMMESV3=0;
 double RebufferMMESV3=0;
 double StallMMECloud=0;
 double RebufferMMECloud=0;
+uint32_t sv1=0;
+uint32_t sv2=0;
+uint32_t sv3=0;
+uint32_t cloud=0;
+double Tsv1=0;
+double Tsv2=0;
+double Tsv3=0;
+double Tcloud=0;
 double StartMMESV1=0;
 double StartMMESV2=0;
 double StartMMESV3=0;
@@ -72,7 +80,7 @@ std::ofstream StartTimeLog;
 std::ofstream ServerScoreLog;
 
 void
-LogStall (uint16_t sv1,uint16_t sv2,uint16_t sv3,uint16_t cloud)
+LogStall (uint32_t sv1,uint32_t sv2,uint32_t sv3,uint32_t cloud)
 {
   StallsLog << std::setfill (' ') << std::setw (0) << Simulator::Now ().GetMicroSeconds ()  / (double)1000000 << ";"
               << std::setfill (' ') << std::setw (0) << sv1 << ";"
@@ -164,15 +172,6 @@ getThropughputServer(ApplicationContainer serverApp, TcpStreamServerHelper serve
 void
 getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
-  uint16_t sv1=0;
-  uint16_t sv2=0;
-  uint16_t sv3=0;
-  uint16_t cloud=0;
-  double Tsv1=0;
-  double Tsv2=0;
-  double Tsv3=0;
-  double Tcloud=0;
-  NS_LOG_UNCOND("Stall");
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
@@ -225,41 +224,41 @@ ServerHandover(ApplicationContainer clientApps, TcpStreamClientHelper clientHelp
 void
 getStartTime(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
-  double sv1=0;
-  double sv2=0;
-  double sv3=0;
-  double cloud=0;
+  double STsv1=0;
+  double STsv2=0;
+  double STsv3=0;
+  double STcloud=0;
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
     if(ip=="1.0.0.1")
     {
-      sv1+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
-      StartMMESV1=StartMMESV1 + (2*(sv1-StartMMESV1)/(n+1));
+      STsv1+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
+      StartMMESV1=StartMMESV1 + (2*(STsv1-StartMMESV1)/(n+1));
     }
     else
     {
       if(ip=="2.0.0.1")
       {
-        sv2+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
-        StartMMESV2=StartMMESV2 + (2*(sv1-StartMMESV2)/(n+1));
+        STsv2+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
+        StartMMESV2=StartMMESV2 + (2*(STsv2-StartMMESV2)/(n+1));
       }
       else
       {
         if(ip=="3.0.0.1")
         {
-          sv3+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
-          StartMMESV3=StartMMESV3 + (2*(sv1-StartMMESV3)/(n+1));
+          STsv3+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
+          StartMMESV3=StartMMESV3 + (2*(STsv2-StartMMESV3)/(n+1));
         }
         else
         {
-          cloud+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
-          StartMMECloud=StartMMECloud + (2*(sv1-StartMMECloud)/(n+1));
+          STcloud+=clientHelper.GetPlaybakStartTime(clientApps, clients.at (i).first);
+          StartMMECloud=StartMMECloud + (2*(STcloud-StartMMECloud)/(n+1));
         }
       }
     }
   }
-  LogStartTime(sv1,sv2,sv3,cloud);
+  LogStartTime(STsv1,STsv2,STsv3,STcloud);
 }
 
 void
@@ -807,11 +806,19 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
   clientHelper.SetAttribute ("ServerId", UintegerValue (3));
   clientApps.Add(clientHelper.Install (clients_temp3));
-  
+/*  
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
       double startTime = 2.0;
       clientApps.Get (i)->SetStartTime (Seconds (startTime));
+    }
+*/
+  for (uint i = 0; i < staContainer.GetN (); i++)
+    {
+      Ptr<Application> app = staContainer.Get (i)->GetApplication(0);
+      double startTime = 2.0 ;
+      app->SetStartTime (Seconds (startTime));
+      //app->SetStopTime(Seconds (startTime+10));
     }
 
 /*
