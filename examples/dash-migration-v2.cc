@@ -49,23 +49,17 @@ double StallMMESV3=0;
 double RebufferMMESV3=0;
 double StallMMECloud=0;
 double RebufferMMECloud=0;
-uint32_t sv1=0;
-uint32_t sv2=0;
-uint32_t sv3=0;
-uint32_t cloud=0;
-double Tsv1=0;
-double Tsv2=0;
-double Tsv3=0;
-double Tcloud=0;
 double StartMMESV1=0;
 double StartMMESV2=0;
 double StartMMESV3=0;
 double StartMMECloud=0;
 uint16_t n=3;
-uint16_t MaxClientsSV=10;
+uint16_t MaxClientsSV=15;
 uint32_t numberOfClients;
 uint32_t simulationId = 0;
 std::vector <uint32_t> SClients {0,0,0,0};
+std::vector <uint32_t> SBClients {0,0,0,0};
+std::vector <uint32_t> queue {0,0,0,0};
 std::vector <std::string> delays {"0","0","0","0"};
 Address server1Address;
 Address server2Address;
@@ -293,47 +287,36 @@ split(const char *phrase, std::string delimiter){
 void
 getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
+  uint32_t sv1=0;
+  uint32_t sv2=0;
+  uint32_t sv3=0;
+  uint32_t cloud=0;
+  double Tsv1=0;
+  double Tsv2=0;
+  double Tsv3=0;
+  double Tcloud=0;
   std::string filename = "python3 src/dash-migration/StallRebuffer.py " + dirTmp +" "+ToString(simulationId);
-  //std::string bestSv = execute(filename.c_str());
-  system(filename.c_str());
-  for (uint i = 0; i < numberOfClients; i++)
-  {
-    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    if(ip=="1.0.0.1")
-    {
-      sv1+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-      StallMMESV1=StallMMESV1 + (2*(sv1-StallMMESV1)/(n+1));
-      Tsv1+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-      RebufferMMESV1=RebufferMMESV1 + (2*(Tsv1-RebufferMMESV1)/(n+1));
-    }
-    else
-    {
-      if(ip=="2.0.0.1")
-      {
-        sv2+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-        StallMMESV2=StallMMESV2 + (2*(sv2-StallMMESV2)/(n+1));
-        Tsv2+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-        RebufferMMESV2=RebufferMMESV2 + (2*(Tsv2-RebufferMMESV2)/(n+1));
-      }
-      else
-      {
-        if(ip=="3.0.0.1")
-        {
-          sv3+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-          StallMMESV3=StallMMESV3 + (2*(sv3-StallMMESV3)/(n+1));
-          Tsv3+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-          RebufferMMESV3=RebufferMMESV3 + (2*(Tsv3-RebufferMMESV3)/(n+1));
-        }
-        else
-        {
-          cloud+=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
-          StallMMECloud=StallMMECloud + (2*(cloud-StallMMECloud)/(n+1));
-          Tcloud+=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
-          RebufferMMECloud=RebufferMMECloud + (2*(Tcloud-RebufferMMECloud)/(n+1));
-        }
-      }
-    }
-  }
+  std::string Values = execute(filename.c_str());
+  NS_LOG_UNCOND(Values);
+  //system(filename.c_str());
+  std::vector <std::string> StallsRebuffers;
+  StallsRebuffers = split(Values.c_str(), " ");
+  sv1+=std::stoi(StallsRebuffers[0]);
+  StallMMESV1=StallMMESV1 + (2*(sv1-StallMMESV1)/(n+1));
+  Tsv1+=std::stod(StallsRebuffers[1]);
+  RebufferMMESV1=RebufferMMESV1 + (2*(Tsv1-RebufferMMESV1)/(n+1));
+  sv2+=std::stoi(StallsRebuffers[2]);
+  StallMMESV2=StallMMESV2 + (2*(sv2-StallMMESV2)/(n+1));
+  Tsv2+=std::stod(StallsRebuffers[3]);
+  RebufferMMESV2=RebufferMMESV2 + (2*(Tsv2-RebufferMMESV2)/(n+1));
+  sv3+=std::stoi(StallsRebuffers[4]);
+  StallMMESV3=StallMMESV3 + (2*(sv3-StallMMESV3)/(n+1));
+  Tsv3+=std::stod(StallsRebuffers[5]);
+  RebufferMMESV3=RebufferMMESV3 + (2*(Tsv3-RebufferMMESV3)/(n+1));
+  cloud+=std::stoi(StallsRebuffers[6]);
+  StallMMECloud=StallMMECloud + (2*(cloud-StallMMECloud)/(n+1));
+  Tcloud+=std::stod(StallsRebuffers[7]);
+  RebufferMMECloud=RebufferMMECloud + (2*(Tcloud-RebufferMMECloud)/(n+1));
   LogStall(sv1,sv2,sv3,cloud);
   LogRebuffer(Tsv1,Tsv2,Tsv3,Tcloud);
   Simulator::Schedule(Seconds(1),&getStall,clientApps,clientHelper,clients);
@@ -356,10 +339,18 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
 void
 politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
+  getClientsOnServer(serverApp, serverHelper, servers);
+  for (uint k = 0; k < 4; k++)
+  {
+    int dif=SClients[k]-SBClients[k];
+    if (dif>0)
+    {
+      queue[k]=queue[k]-dif;
+    }
+  }
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    getClientsOnServer(serverApp, serverHelper, servers);
     std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip;
     //std::string bestSv = execute(filename.c_str());
     std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
@@ -369,24 +360,24 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     for (uint j = 0; j < BestServers.size(); j++)
     {
       Address SvIp;
-      uint32_t SvClients;
       uint16_t aux;
       switch(BestServers[j].at(0))
       {
         case '1':
           SvIp=server1Address;
-          SvClients=SClients[0];
           aux=0;
           break;
         case '2':
           SvIp=server2Address;
-          SvClients=SClients[1];
           aux=1;
           break;
         case '3':
           SvIp=server3Address;
-          SvClients=SClients[2];
           aux=2;
+          break;
+        case '4':
+          SvIp=cloudAddress;
+          aux=3;
           break;
       }
       if (ip==BestServers[j])
@@ -395,17 +386,21 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
       }
       else
       {
-        if(SvClients<MaxClientsSV)
+        if(SClients[aux]+queue[aux]<MaxClientsSV)
         {
           std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
-          SClients[aux]=SClients[aux]+1;
+          queue[aux]=queue[aux]+1;
           ServerHandover(clientApps, clientHelper, SvIp, clients,i);
           j=BestServers.size();
         }
       }
     }
   }
-  Simulator::Schedule(Seconds(1),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  for (uint l = 0; l < 4; l++)
+  {
+    SBClients[l]=SClients[l];
+  }
+  Simulator::Schedule(Seconds(2),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 void
@@ -749,7 +744,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp1;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp2;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp3;
-  
+  /*
   for (uint i = 0; i < numberOfClients; i++)
     {
       if(i<(numberOfClients+(4-(numberOfClients % 4)))/4)
@@ -808,7 +803,7 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   clientHelper.SetAttribute ("NumberOfClients", UintegerValue(numberOfClients));
   clientHelper.SetAttribute ("SimulationId", UintegerValue (simulationId));
   clientHelper.SetAttribute ("ServerId", UintegerValue (3));
-  clientApps.Add(clientHelper.Install (clients_temp3));
+  clientApps.Add(clientHelper.Install (clients));
 /*  
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
