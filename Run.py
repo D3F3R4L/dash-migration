@@ -77,10 +77,10 @@ def main():
 		if (useCores+j)>NumSims:
 			useCores=NumSims-j
 		for i in range(0,useCores):
-			time.sleep(2)
 			Cores[list(Cores)[i]]=mp.Process(target=callFunction, args=(j,script,))
 			j+=1
 		for i in range(0,useCores):
+			time.sleep(2)
 			Cores[list(Cores)[i]].start()
 		for i in range(0,useCores):
 			Cores[list(Cores)[i]].join()
