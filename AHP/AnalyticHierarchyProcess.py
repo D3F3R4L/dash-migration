@@ -88,8 +88,8 @@ class AHP():
             parametros = np.array(parametro[idfog]).flat
             soma=0
             for i in range(0, 4):
-                print(atual[i])
-                print(parametros[i])
+                #print(atual[i])
+                #print(parametros[i])
                 soma += atual[i] - parametros[i]
 
             dicdistancia[idfog] = soma
@@ -113,5 +113,5 @@ class AHP():
         influ = self.Influenciacompeso(matrizesdepreferencias)
         normalizado = self.Normaliza(influ)
         distancia = self.Distanciaeuclidiana(normalizado,ip)
-        print(self.score(distancia))
+        #print(self.score(distancia))
         return distancia

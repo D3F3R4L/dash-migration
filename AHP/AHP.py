@@ -73,7 +73,7 @@ def concatenarServers():
 
   for i in range(0,len(delays)):
     aux=list(delays[i])
-    print(delays)
+    #print(delays)
     aux=aux[:-10]
     aux.pop(0)
     delays[i] = ''.join(aux)
@@ -83,11 +83,11 @@ def concatenarServers():
     ServerIP = ServersIP[i]
     #if i==0 or i==1 or i==2:
     #StallValues[i]=i
-    if i==3:
-      print('Delays: ',delays)
-      print('ThroughputValues: ',ThroughputValues)
-      print('Stalls: ',StallValues)
-      print('Rebuffers: ',RebufferValues)
+    #if i==3:
+    #  print('Delays: ',delays)
+    #  print('ThroughputValues: ',ThroughputValues)
+    #  print('Stalls: ',StallValues)
+    #  print('Rebuffers: ',RebufferValues)
     Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
     #Servers[ServerIP] = [RebufferValues[i],StallValues[i],100-ThroughputValues[i],delays[i]]
   return Servers

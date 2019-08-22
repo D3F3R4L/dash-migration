@@ -28,6 +28,8 @@ throughtputTotals=[]
 timeTotals=[]
 MMEsTotals=[]
 qualityLevelTotals=[]
+StallsTotals=[]
+RebuffersTotals=[]
 
 
 def main():
@@ -41,6 +43,11 @@ def main():
   folders=os.listdir(folder)
   os.chdir(folder)
   folders.sort(key=operator.itemgetter(0))
+  aux=[]
+  for i in folders:
+    if i.isdigit():
+      aux.append(i)
+  folders=aux
   print(folders)
   for i in folders:
     #folder='dash-log-files/{algo}/{num}/{pol}'.format(algo=adaptAlgo,num=numberOfClients,pol=i)
@@ -156,7 +163,6 @@ def bufferUnderrunGraphs():
 ################
 def throughputGraphs(numSegments):
   throughputFiles = glob.glob('*throughputLog*')
-  print(throughputFiles)
   S1Throughput=np.zeros(numSegments)
   S2Throughput=np.zeros(numSegments)
   S3Throughput=np.zeros(numSegments)
@@ -533,13 +539,10 @@ def StallsGraphs():
     j=0
     while(j<len(StallFile)):
       name = StallFile[j]
-      file = open(name,"r")
-      next(file)
-      aux=[]
-      for line in file:
-        fields = line.split(";")
-        aux.append(fields)
-      collums.append(list(zip(*aux)))
+      with open(name) as f:
+        data = f.readlines()
+      fields = data[-1].split(";")
+      collums.append(fields)
       j+=1
     k+=1
   barGraphs(collums,'Stalls')  
@@ -556,13 +559,10 @@ def RebufferGraphs():
     j=0
     while(j<len(RebufferFile)):
       name = RebufferFile[j]
-      file = open(name,"r")
-      aux=[]
-      next(file)
-      for line in file:
-        fields = line.split(";")
-        aux.append(fields)
-      collums.append(list(zip(*aux)))
+      with open(name) as f:
+        data = f.readlines()
+      fields = data[-1].split(";")
+      collums.append(fields)
       j+=1
     k+=1
   barGraphs(collums,'Rebuffer')
@@ -579,20 +579,10 @@ def barGraphs(collums, graph):
   k=0
   while (k<runs):
     while(l<len(collums[k])-1):
-      if (l%2==0):
-      	arr=list(map(float,collums[k][l]))
-      	default[int((l/2)-1)].append(arr[-1])
-      	#arr2=list(map(float,collums[k][l]))
-      	#defaultMSE[int((l/2)-1)].append(arr2[-1])
-        #mean=np.mean()
-        #mse=np.std()
-        #default.append(mean)
-        #defaultMSE.append(mse)
+      if (l%2!=0):
+      	default[int((l/2)-0.5)].append(float(collums[k][l]))
       else:
-        arr=list(map(float,collums[k][l]))
-        #arr2=list(map(float,collums[k][l]))
-        MME[int((l-1)/2)].append(arr[-1])
-        #MMEMSE[int((l-1)/2)].append(arr2[-1])
+        MME[int((l/2)-1)].append(float(collums[k][l]))
       l+=1
     l=1
     k+=1
@@ -607,6 +597,7 @@ def barGraphs(collums, graph):
   rects1 = ax.bar(ind - width/2, defaultMean, width, yerr=defaultMSE,label='Media')
   rects2 = ax.bar(ind + width/2, MMEMean, width, yerr=MMEMSE,label='MME')
   if (graph=='Stalls'):
+    StallsTotals.append(defaultMean)
     ax.set_ylabel('Quantity')
     ax.set_title('Number of Stalls per Server')
     ax.set_xticks(ind)
@@ -614,6 +605,7 @@ def barGraphs(collums, graph):
     ax.legend()
     save = 'Stalls.png'
   else:
+    RebuffersTotals.append(defaultMean)
     ax.set_ylabel('Seconds')
     ax.set_title('Rebuffers duration per Server')
     ax.set_xticks(ind)
@@ -625,6 +617,8 @@ def barGraphs(collums, graph):
   plt.close()
 
 def graphtotals(numSegments):
+  print('Working in Comparation Graphs...')
+  print('Throughputs Comparation...')
   for i in range (0,4):
     plt.plot(timeTotals[i],throughtputTotals[i],color='r',ls='--',lw=2)
     plt.plot(timeTotals[i+4],throughtputTotals[i+4],color='g',ls='-.',lw=2)
@@ -642,7 +636,8 @@ def graphtotals(numSegments):
     plt.title(name)
     plt.savefig(name,bbox_inches="tight",dpi=300)
     plt.close()
-
+  print('Throughputs Comparation done')
+  print('Throughputs MME Comparation...')
   for i in range (0,4):
     plt.plot(timeTotals[i],MMEsTotals[i],color='r',ls='--',lw=2)
     plt.plot(timeTotals[i+4],MMEsTotals[i+4],color='g',ls='-.',lw=2)
@@ -660,7 +655,8 @@ def graphtotals(numSegments):
     plt.title(name)
     plt.savefig(name,bbox_inches="tight",dpi=300)
     plt.close()
-
+  print('Throughputs MME Comparation done')
+  print('Bitrate Comparation...')
   for i in range (0,4):
     x=np.arange(0,numSegments)
     fig,ax =plt.subplots()
@@ -684,6 +680,39 @@ def graphtotals(numSegments):
     ax.add_artist(l1)
     plt.savefig(save,bbox_inches="tight",dpi=300)
     plt.close()
+  print('Bitrate Comparation done')
+  print('Stalls Comparation...')
+  ind = np.arange(4)
+  width = 0.2
+  fig, ax = plt.subplots()
+  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='AHP')
+  rects2 = ax.bar(ind, StallsTotals[1], width,label='Greedy')
+  rects3 = ax.bar(ind + width, StallsTotals[2], width,label='Random')
+  ax.set_ylabel('Number of Stall Events')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+  ax.legend()
+  save = 'StallsTotals.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Stalls Comparation done')
+  print('Rebuffers Comparation...')
+  ind = np.arange(4)
+  width = 0.2  
+  fig, ax = plt.subplots()
+  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='AHP')
+  rects2 = ax.bar(ind, RebuffersTotals[1], width,label='Greedy')
+  rects3 = ax.bar(ind + width, RebuffersTotals[2], width,label='Random')
+  ax.set_ylabel('Stall Duration (Seconds)')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+  ax.legend()
+  save = 'RebuffersTotals.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Rebuffers Comparation done')
+
+  print('Graphs Comparation done.')
 
 def toBitrate(vet):
   for i in range(0,len(vet)):

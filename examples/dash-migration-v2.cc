@@ -352,9 +352,9 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
     std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip;
-    //std::string bestSv = execute(filename.c_str());
-    std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-    system(filename.c_str());
+    std::string bestSv = execute(filename.c_str());
+    //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+    //system(filename.c_str());
     std::vector <std::string> BestServers;
     BestServers = split(bestSv.c_str(), " "); 
     for (uint j = 0; j < BestServers.size(); j++)
@@ -406,14 +406,22 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
 void
 politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
-  Address SvIp;
-  uint16_t aux;
+  getClientsOnServer(serverApp, serverHelper, servers);
+  for (uint k = 0; k < 4; k++)
+  {
+    int dif=SClients[k]-SBClients[k];
+    if (dif>0)
+    {
+      queue[k]=queue[k]-dif;
+    }
+  }
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    getClientsOnServer(serverApp, serverHelper, servers);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0])+" "+ ToString(SClients[1])+" "+ ToString(SClients[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3]+queue[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
     std::string bestSv = execute(filename.c_str());
+    Address SvIp;
+    uint16_t aux;
     //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
     //system(filename.c_str());
     std::vector <std::string> BestServers;
@@ -437,13 +445,18 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
         aux=3;
         break;
     }
-    if (ip!=BestServers[0])
+    if (ip!=BestServers[0] and SClients[aux]+queue[aux]<MaxClientsSV)
     {
       std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
+      queue[aux]=queue[aux]+1;
       ServerHandover(clientApps, clientHelper, SvIp, clients,i);
     }
   }
-  Simulator::Schedule(Seconds(1),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  for (uint l = 0; l < 4; l++)
+  {
+    SBClients[l]=SClients[l];
+  }
+  Simulator::Schedule(Seconds(2),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 static void

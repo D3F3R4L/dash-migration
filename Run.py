@@ -3,6 +3,7 @@ import sys
 import multiprocessing as mp
 import numpy as np
 import argparse
+import time
 
 NumCores=os.cpu_count()
 parser = argparse.ArgumentParser(description='Script to run multiple simulations with NS3 scripts, and balence the use of cores on CPU to always left some free cores. Example python3 src/dash-migration/Run.py dash-migration-v2 -i simulationId -s seedValue -r 5 -args politica=1 -args numberOfClients=5 -ug -g src/dash-migration/graficos.py -rargs runs=r -cargs numberOfClients=c')
@@ -76,12 +77,14 @@ def main():
 		if (useCores+j)>NumSims:
 			useCores=NumSims-j
 		for i in range(0,useCores):
+			time.sleep(2)
 			Cores[list(Cores)[i]]=mp.Process(target=callFunction, args=(j,script,))
 			j+=1
 		for i in range(0,useCores):
 			Cores[list(Cores)[i]].start()
 		for i in range(0,useCores):
 			Cores[list(Cores)[i]].join()
+		time.sleep(10)
 	if args.UseGraph:
 		graph()
 
