@@ -28,8 +28,16 @@ def bufferUnderrunGraphs():
   S2Nstalls=0
   S3Nstalls=0
   CloudNstalls=0
+  S1Clients=0
+  S2Clients=0
+  S3Clients=0
+  CloudClients=0
   j=0
   while(j<len(bufferUnderrunFiles)):
+    S1Client=True
+    S2Client=True
+    S3Client=True
+    CloudClient=True
     name = bufferUnderrunFiles[j]
     with open(name) as f:
       data = f.readlines()
@@ -38,20 +46,46 @@ def bufferUnderrunGraphs():
       #print(fields)
       if len(fields)>=5:
         if str(fields[0])=="1.0.0.1":
+          if S1Client:
+            S1Clients+=1
+            S1Client=False
           S1Nstalls+=1
           S1timeTotal+=float(fields[3])
         elif str(fields[0])=='2.0.0.1' :
+          if S2Client:
+            S2Clients+=1
+            S2Client=False
           S2Nstalls+=1
           S2timeTotal+=float(fields[3])
         elif str(fields[0])=='3.0.0.1' :
+          if S3Client:
+            S3Clients+=1
+            S3Client=False
           S3Nstalls+=1
           S3timeTotal+=float(fields[3])
         else:
+          if CloudClient:
+            CloudClients+=1
+            CloudClient=False
           CloudNstalls+=1
           CloudtimeTotal+=float(fields[3])
     f.close()
     j+=1
+  #S1Nstalls=dividir(S1Nstalls,S1Clients)
+  #S2Nstalls=dividir(S2Nstalls,S2Clients)
+  #S3Nstalls=dividir(S3Nstalls,S3Clients)
+  #CloudNstalls=dividir(CloudNstalls,CloudClients)
+  #S1timeTotal=dividir(S1timeTotal,S1Clients)
+  #S2timeTotal=dividir(S2timeTotal,S2Clients)
+  #S3timeTotal=dividir(S3timeTotal,S3Clients)
+  #CloudtimeTotal=dividir(CloudtimeTotal,CloudClients)
   return S1Nstalls,S1timeTotal,S2Nstalls,S2timeTotal,S3Nstalls,S3timeTotal,CloudNstalls,CloudtimeTotal
+
+def dividir(a,b):
+  if b==0:
+    return 0
+  else:
+    return a/b
 
 if __name__=="__main__":
     main()

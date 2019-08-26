@@ -88,8 +88,8 @@ def concatenarServers():
     #  print('ThroughputValues: ',ThroughputValues)
     #  print('Stalls: ',StallValues)
     #  print('Rebuffers: ',RebufferValues)
-    Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
-    #Servers[ServerIP] = [RebufferValues[i],StallValues[i],100-ThroughputValues[i],delays[i]]
+    #Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
+    Servers[ServerIP] = [StallValues[i],RebufferValues[i],ThroughputValues[i],delays[i]]
   return Servers
 
 if __name__=="__main__":

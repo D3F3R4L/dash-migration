@@ -74,7 +74,7 @@ std::ofstream StartTimeLog;
 std::ofstream ServerScoreLog;
 
 void
-LogStall (uint32_t sv1,uint32_t sv2,uint32_t sv3,uint32_t cloud)
+LogStall (double sv1,double sv2,double sv3,double cloud)
 {
   StallsLog << std::setfill (' ') << std::setw (0) << Simulator::Now ().GetMicroSeconds ()  / (double)1000000 << ";"
               << std::setfill (' ') << std::setw (0) << sv1 << ";"
@@ -287,10 +287,10 @@ split(const char *phrase, std::string delimiter){
 void
 getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
 {
-  uint32_t sv1=0;
-  uint32_t sv2=0;
-  uint32_t sv3=0;
-  uint32_t cloud=0;
+  double sv1=0;
+  double sv2=0;
+  double sv3=0;
+  double cloud=0;
   double Tsv1=0;
   double Tsv2=0;
   double Tsv3=0;
@@ -301,19 +301,19 @@ getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   //system(filename.c_str());
   std::vector <std::string> StallsRebuffers;
   StallsRebuffers = split(Values.c_str(), " ");
-  sv1+=std::stoi(StallsRebuffers[0]);
+  sv1+=std::stod(StallsRebuffers[0]);
   StallMMESV1=StallMMESV1 + (2*(sv1-StallMMESV1)/(n+1));
   Tsv1+=std::stod(StallsRebuffers[1]);
   RebufferMMESV1=RebufferMMESV1 + (2*(Tsv1-RebufferMMESV1)/(n+1));
-  sv2+=std::stoi(StallsRebuffers[2]);
+  sv2+=std::stod(StallsRebuffers[2]);
   StallMMESV2=StallMMESV2 + (2*(sv2-StallMMESV2)/(n+1));
   Tsv2+=std::stod(StallsRebuffers[3]);
   RebufferMMESV2=RebufferMMESV2 + (2*(Tsv2-RebufferMMESV2)/(n+1));
-  sv3+=std::stoi(StallsRebuffers[4]);
+  sv3+=std::stod(StallsRebuffers[4]);
   StallMMESV3=StallMMESV3 + (2*(sv3-StallMMESV3)/(n+1));
   Tsv3+=std::stod(StallsRebuffers[5]);
   RebufferMMESV3=RebufferMMESV3 + (2*(Tsv3-RebufferMMESV3)/(n+1));
-  cloud+=std::stoi(StallsRebuffers[6]);
+  cloud+=std::stod(StallsRebuffers[6]);
   StallMMECloud=StallMMECloud + (2*(cloud-StallMMECloud)/(n+1));
   Tcloud+=std::stod(StallsRebuffers[7]);
   RebufferMMECloud=RebufferMMECloud + (2*(Tcloud-RebufferMMECloud)/(n+1));
@@ -639,11 +639,11 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
 //// Set up Building
 //////////////////////////////////////////////////////////////////////////////////////////////////
   double roomHeight = 3;
-  double roomLength = 6;
-  double roomWidth = 5;
-  uint32_t xRooms = 8;
-  uint32_t yRooms = 3;
-  uint32_t nFloors = 6;
+  double roomLength = 50;
+  double roomWidth = 50;
+  uint32_t xRooms = 1;
+  uint32_t yRooms = 1;
+  uint32_t nFloors = 1;
 
   Ptr<Building> b = CreateObject <Building> ();
   b->SetBoundaries (Box ( 0.0, xRooms * roomWidth,
@@ -651,9 +651,9 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
                           0.0, nFloors * roomHeight));
   b->SetBuildingType (Building::Office);
   b->SetExtWallsType (Building::ConcreteWithWindows);
-  b->SetNFloors (6);
-  b->SetNRoomsX (8);
-  b->SetNRoomsY (3);
+  b->SetNFloors (1);
+  b->SetNRoomsX (1);
+  b->SetNRoomsY (1);
 
   Vector posAp = Vector ( 1.0, 1.0, 1.0);
   // give the server node any position, it does not have influence on the simulation, it has to be set though,

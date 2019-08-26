@@ -4,7 +4,7 @@ import numpy as np
 
 import math
 
-Limiares=[50,2,30,20,10]
+Limiares=[50,1.2,20,30,15]
 
 class guloso():
 
@@ -16,7 +16,7 @@ class guloso():
         for i in s:
             mudar = False
             parametro = np.array(Fogs[i]).flat
-            n=parametro[3]
+            n=parametro[4]
             if n==0:
                 n=1
             if (parametro[0] > Limiares[0] or (parametro[1]/n)<(Limiares[1]/n) or parametro[2] > Limiares[2] or parametro[3] > Limiares[3] or n>Limiares[4]):

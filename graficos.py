@@ -23,7 +23,8 @@ segmentfile=args.segmentfile
 adaptAlgo=args.adaptAlgo
 numberOfClients=args.Clients
 #politica=args.Politica
-
+MeansTotals=[]
+MeansBW=[]
 throughtputTotals=[]
 timeTotals=[]
 MMEsTotals=[]
@@ -312,6 +313,8 @@ def qualityGraphs(numSegments):
   print('Working in QualityGraphs...')
   bestScore=0
   worstScore=10000000
+  Means=[]
+  MeansSV=[]
   bestClientQuality=[]
   bestClientServer=[]
   worstClientQuality=[]
@@ -412,10 +415,15 @@ def qualityGraphs(numSegments):
   p4,=plt.plot(x,S4QualityMean,color='y',markersize=15, label='Tier-1 Cloud')
   plt.xlabel('Segments')
   plt.ylabel('Video bitrate(Kbps)')
-  red_line = mlines.Line2D([], [], color='r',markersize=15, label='{mean} Kbps'.format(mean=int(np.mean(S1QualityMean))))
-  green_line = mlines.Line2D([], [], color='g',markersize=15, label='{mean} Kbps'.format(mean=int(np.mean(S2QualityMean))))
-  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='{mean} Kbps'.format(mean=int(np.mean(S3QualityMean))))
-  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='{mean} Kbps'.format(mean=int(np.mean(S4QualityMean))))
+  MeansSV.append(int(np.mean(S1QualityMean)))
+  MeansSV.append(int(np.mean(S2QualityMean)))
+  MeansSV.append(int(np.mean(S3QualityMean)))
+  MeansSV.append(int(np.mean(S4QualityMean)))
+  MeansTotals.append(MeansSV)
+  red_line = mlines.Line2D([], [], color='r',markersize=15, label='{mean} Kbps'.format(mean=MeansSV[0]))
+  green_line = mlines.Line2D([], [], color='g',markersize=15, label='{mean} Kbps'.format(mean=MeansSV[1]))
+  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='{mean} Kbps'.format(mean=MeansSV[2]))
+  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='{mean} Kbps'.format(mean=MeansSV[3]))
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   plt.title("Video Bitrate")
@@ -442,7 +450,8 @@ def qualityGraphs(numSegments):
     else:
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
-  red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=int(np.mean(bestClientQuality))))
+  Means.append(int(np.mean(bestClientQuality)))
+  red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=Means[0]))
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
@@ -471,10 +480,11 @@ def qualityGraphs(numSegments):
     else:
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
-  mean=np.mean(worstClientQuality)
-  if np.isnan(mean):
-    mean=np.nan_to_num(mean)
-  red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=int(mean)))
+  Means.append(int(np.mean(worstClientQuality)))
+  if np.isnan(Means[1]):
+    Means[1]=np.nan_to_num(Means[1])
+  MeansBW.append(Means)
+  red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=Means[1]))
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
@@ -625,7 +635,7 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],throughtputTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='AHP')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='F2V')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
     blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
     plt.legend(handles=[red_line,green_line,blue_line])
@@ -644,7 +654,7 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],MMEsTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='AHP')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='F2V')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
     blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
     plt.legend(handles=[red_line,green_line,blue_line])
@@ -660,7 +670,7 @@ def graphtotals(numSegments):
   for i in range (0,4):
     x=np.arange(0,numSegments)
     fig,ax =plt.subplots()
-    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='AHP')
+    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='F2V')
     p2,=plt.plot(x,qualityLevelTotals[i+4],color='g',ls='-.',lw=3, label='Greedy')
     p3,=plt.plot(x,qualityLevelTotals[i+8],color='b',ls=':',lw=3, label='Random')
     plt.xlabel('Segments')
@@ -685,13 +695,14 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='AHP')
+  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='F2V')
   rects2 = ax.bar(ind, StallsTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, StallsTotals[2], width,label='Random')
   ax.set_ylabel('Number of Stall Events')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
   ax.legend()
+  plt.grid(True,axis='y')
   save = 'StallsTotals.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -700,19 +711,84 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2  
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='AHP')
+  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='F2V')
   rects2 = ax.bar(ind, RebuffersTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, RebuffersTotals[2], width,label='Random')
   ax.set_ylabel('Stall Duration (Seconds)')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
   ax.legend()
+  plt.grid(True,axis='y')
   save = 'RebuffersTotals.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Rebuffers Comparation done')
-
+  print('Clients Comparation...')
+  ind = np.arange(4)
+  width = 0.2
+  fig, ax = plt.subplots()
+  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='F2V')
+  rects2 = ax.bar(ind, MeansTotals[1], width,label='Greedy')
+  rects3 = ax.bar(ind + width, MeansTotals[2], width,label='Random')
+  ax.set_ylabel('Bitrate Mean (Mbps)')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+  ax.legend()
+  plt.grid(True,axis='y')
+  save = 'BitrateTotals.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  ind = np.arange(2)
+  width = 0.2
+  fig, ax = plt.subplots()
+  rects1 = ax.bar(ind - width, MeansBW[0], width,label='F2V')
+  rects2 = ax.bar(ind, MeansBW[1], width,label='Greedy')
+  rects3 = ax.bar(ind + width, MeansBW[2], width,label='Random')
+  ax.set_ylabel('Bitrate Mean (Mbps)')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Best Client', 'Worst Client'))
+  ax.legend()
+  plt.grid(True,axis='y')
+  save = 'BestWorstTotals.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Clients Comparation done.')
   print('Graphs Comparation done.')
+
+  ind = np.arange(0.0,1.5,0.5)
+  width = 0.2
+  fig, ax = plt.subplots()
+  aux=[np.sum(StallsTotals[0]),np.sum(StallsTotals[1]),np.sum(StallsTotals[2])]
+  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(runs)),1.96*(np.std(StallsTotals[1])/np.sqrt(runs)),1.96*(np.std(StallsTotals[2])/np.sqrt(runs))]
+  rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
+  #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='F2V')
+  #rects2 = ax.bar(ind, np.sum(StallsTotals[1]), width,yerr=(1.96*(np.std(StallsTotals[1])/np.sqrt(runs))),label='Greedy')
+  #rects3 = ax.bar(ind, np.sum(StallsTotals[2]),width,yerr=(1.96*(np.std(StallsTotals[2])/np.sqrt(runs))),label='Random')
+  ax.set_ylabel('Number of Stall Events')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('F2V', 'Greedy', 'Random'))
+  #ax.legend()
+  plt.grid(True,axis='y')
+  save = 'StallsTotal.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  ind = np.arange(3)
+  width = 0.2  
+  fig, ax = plt.subplots()
+  aux=[np.sum(RebuffersTotals[0]),np.sum(RebuffersTotals[1]),np.sum(RebuffersTotals[2])]
+  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs)),1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs)),1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))]
+  rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
+  #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='F2V')
+  #rects2 = ax.bar(ind, np.sum(RebuffersTotals[1]), width,yerr=(1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs))),label='Greedy')
+  #rects3 = ax.bar(ind + width, np.sum(RebuffersTotals[2]),width,yerr=(1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))),label='Random')
+  ax.set_ylabel('Stall Duration (Seconds)')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('F2V', 'Greedy', 'Random'))
+  #ax.legend()
+  plt.grid(True,axis='y')
+  save = 'RebuffersTotal.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
 
 def toBitrate(vet):
   for i in range(0,len(vet)):
