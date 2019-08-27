@@ -20,7 +20,17 @@ def main():
   ServersScores=list(ServersScores.items())
   ServersScores.sort(key=operator.itemgetter(1))
   #print(ServersScores)
-  print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
+  if (ServersScores[2][1]>0):
+    if (ServersScores[1][1]>0):
+      if (ServersScores[0][1]>0):
+        print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
+      else:
+        print(ServersScores[2][0],ServersScores[1][0])
+    else:
+      print(ServersScores[2][0])
+  else:
+    print(5)
+  #print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
   ServersScores.sort(key=operator.itemgetter(0))
   line=[str(ServersScores[0][1]),str(ServersScores[1][1]),str(ServersScores[2][1])]
   csv.register_dialect('myDialect',delimiter = ';',quoting=csv.QUOTE_NONE,skipinitialspace=True)
@@ -88,8 +98,8 @@ def concatenarServers():
     #  print('ThroughputValues: ',ThroughputValues)
     #  print('Stalls: ',StallValues)
     #  print('Rebuffers: ',RebufferValues)
-    #Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
-    Servers[ServerIP] = [StallValues[i],RebufferValues[i],ThroughputValues[i],delays[i]]
+    Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i]]
+    #Servers[ServerIP] = [StallValues[i],RebufferValues[i],ThroughputValues[i],delays[i]]
   return Servers
 
 if __name__=="__main__":

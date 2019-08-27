@@ -61,7 +61,7 @@ class AHP():
             parametros = np.array(parametro[idfog]).flat
             for i in range(0, 4):
                 influ[i]=parametros[i] * peso[i]
-                self.soma[i] += + influ[i]
+                self.soma[i] += influ[i]
             prioridadesGlobais[idfog] = influ
 
         return prioridadesGlobais
@@ -76,6 +76,7 @@ class AHP():
                     normaliza[i]=0
                 else:
                     normaliza[i] = parametros[i] / (self.soma[i]/len(self.soma))
+                    #normaliza[i]=parametros[i]/np.max(parametros)
             dicionarionorma[idfog] = normaliza
         return dicionarionorma
 

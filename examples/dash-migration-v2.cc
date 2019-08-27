@@ -356,7 +356,8 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
     //system(filename.c_str());
     std::vector <std::string> BestServers;
-    BestServers = split(bestSv.c_str(), " "); 
+    BestServers = split(bestSv.c_str(), " ");
+    bool jump=false;
     for (uint j = 0; j < BestServers.size(); j++)
     {
       Address SvIp;
@@ -379,14 +380,17 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
           SvIp=cloudAddress;
           aux=3;
           break;
+        case '5':
+          jump=true;
+          break;
       }
-      if (ip==BestServers[j])
+      if (ip==BestServers[j] or jump)
       {
         j=BestServers.size();
       }
       else
       {
-        if(SClients[aux]+queue[aux]<MaxClientsSV)
+        if(SClients[aux]+queue[aux]<MaxClientsSV or aux==3)
         {
           std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
           queue[aux]=queue[aux]+1;
@@ -440,12 +444,12 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
         SvIp=server3Address;
         aux=2;
         break;
-      default:
+      case '4':
         SvIp=cloudAddress;
         aux=3;
         break;
     }
-    if (ip!=BestServers[0] and SClients[aux]+queue[aux]<MaxClientsSV)
+    if ((ip!=BestServers[0] and SClients[aux]+queue[aux]<MaxClientsSV) or aux==3)
     {
       std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
       queue[aux]=queue[aux]+1;

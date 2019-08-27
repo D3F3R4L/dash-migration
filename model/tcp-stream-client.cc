@@ -600,7 +600,10 @@ TcpStreamClient::HandoverApplication (Address ip)
   controllerState temp = state;
   m_peerAddress = ip;
   state = terminal;
-  if (m_socket != 0)
+  NS_LOG_UNCOND(ip);
+  if (Ipv4Address::IsMatchingType (m_peerAddress) == true)
+  {
+    if (m_socket != 0)
     {
       m_socket->Close ();
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
@@ -612,6 +615,7 @@ TcpStreamClient::HandoverApplication (Address ip)
         MakeCallback (&TcpStreamClient::ConnectionFailed, this));
       m_socket->SetRecvCallback (MakeCallback (&TcpStreamClient::HandleRead, this));
     }
+  }
   state = temp;
 }
 
