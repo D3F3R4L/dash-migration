@@ -50,7 +50,6 @@ FestiveAlgorithm::GetNextRep (const int64_t segmentCounter, int64_t clientId)
   answer.decisionTime = timeNow;
   answer.nextDownloadDelay = 0;
   answer.delayDecisionCase = 0;
-
   if (segmentCounter == 0)
     {
       answer.nextRepIndex = 0;

@@ -167,6 +167,10 @@ public:
 
   std::string GetServerAddress(ApplicationContainer clientApps, Ptr<Node> node);
 
+  std::string GetNewServerAddress(ApplicationContainer clientApps, Ptr<Node> node);
+  
+  bool GetHandover(ApplicationContainer clientApps, Ptr<Node> node);
+
 private:
   /**
    * Install an ns3::TcpStreamClient on the node configured with all the

@@ -20,9 +20,9 @@ def main():
   ServersScores=list(ServersScores.items())
   ServersScores.sort(key=operator.itemgetter(1))
   #print(ServersScores)
-  if (ServersScores[2][1]>0):
-    if (ServersScores[1][1]>0):
-      if (ServersScores[0][1]>0):
+  if (ServersScores[2][1]>0.5):
+    if (ServersScores[1][1]>0.5):
+      if (ServersScores[0][1]>0.5):
         print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
       else:
         print(ServersScores[2][0],ServersScores[1][0])

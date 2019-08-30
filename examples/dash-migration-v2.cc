@@ -57,6 +57,9 @@ uint16_t n=3;
 uint16_t MaxClientsSV=15;
 uint32_t numberOfClients;
 uint32_t simulationId = 0;
+std::vector <double> throughputs;
+std::vector <double> Rebuffers;
+std::vector <uint64_t> Stalls;
 std::vector <uint32_t> SClients {0,0,0,0};
 std::vector <uint32_t> SBClients {0,0,0,0};
 std::vector <uint32_t> queue {0,0,0,0};
@@ -65,7 +68,6 @@ Address server1Address;
 Address server2Address;
 Address server3Address;
 Address cloudAddress;
-
 std::string dirTmp;
 std::string type;
 std::ofstream StallsLog;
@@ -148,7 +150,7 @@ getThropughputClients(ApplicationContainer clientApps, TcpStreamClientHelper cli
 {
   for (uint i = 0; i < numberOfClients; i++)
   {
-    clientHelper.GetThroughput(clientApps, clients.at (i).first);
+    throughputs[i]=clientHelper.GetThroughput(clientApps, clients.at (i).first);
   }
   Simulator::Schedule(Seconds(1),&getThropughputClients,clientApps,clientHelper,clients);
 }
@@ -323,6 +325,16 @@ getStall(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
 }
 
 void
+getClientsStallsRebuffers(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
+{
+  for (uint i = 0; i < numberOfClients; i++)
+  {
+    Rebuffers[i]=clientHelper.GetTotalBufferUnderrunTime(clientApps, clients.at (i).first);
+    Stalls[i]=clientHelper.GetNumbersOfBufferUnderrun(clientApps, clients.at (i).first);
+  }
+}
+
+void
 getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
   for (uint j = 0; j < servers.GetN(); j++)
@@ -337,9 +349,47 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
 }
 
 void
+getClientsHandover(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients)
+{
+  queue[0]=0;
+  queue[1]=0;
+  queue[2]=0;
+  queue[3]=0;
+  for (uint j = 0; j < numberOfClients; j++)
+  {
+    std::string ip;
+    if (clientHelper.GetHandover(clientApps, clients.at (j).first))
+    {
+      ip=clientHelper.GetNewServerAddress(clientApps, clients.at (j).first);
+      switch(ip.at(0))
+      {
+        case '1':
+          queue[0]=queue[0]+1;
+          break;
+        case '2':
+          queue[1]=queue[1]+1;
+          break;
+        case '3':
+          queue[2]=queue[2]+1;
+          break;
+        case '4':
+          queue[3]=queue[3]+1;
+          break;
+      }
+    }
+  }
+  NS_LOG_UNCOND(queue[0]);
+  NS_LOG_UNCOND(queue[1]);
+  NS_LOG_UNCOND(queue[2]);
+  NS_LOG_UNCOND(queue[3]);
+}
+
+void
 politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
   getClientsOnServer(serverApp, serverHelper, servers);
+  getClientsHandover(clientApps,clientHelper,clients);
+  /*
   for (uint k = 0; k < 4; k++)
   {
     int dif=SClients[k]-SBClients[k];
@@ -347,7 +397,7 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     {
       queue[k]=queue[k]-dif;
     }
-  }
+  }*/
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
@@ -411,6 +461,8 @@ void
 politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
   getClientsOnServer(serverApp, serverHelper, servers);
+  getClientsHandover(clientApps,clientHelper,clients);
+  /*
   for (uint k = 0; k < 4; k++)
   {
     int dif=SClients[k]-SBClients[k];
@@ -418,11 +470,11 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
     {
       queue[k]=queue[k]-dif;
     }
-  }
+  }*/
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3]+queue[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
     std::string bestSv = execute(filename.c_str());
     Address SvIp;
     uint16_t aux;
@@ -488,6 +540,8 @@ main (int argc, char *argv[])
   uint16_t pol=0;
 
   //lastRx=[numberOfClients];
+  throughputs.reserve(numberOfClients);
+  throughputs.resize(numberOfClients);
 
   CommandLine cmd;
   cmd.Usage ("Simulation of streaming with DASH.\n");

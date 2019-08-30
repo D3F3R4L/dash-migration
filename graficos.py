@@ -758,8 +758,8 @@ def graphtotals(numSegments):
   ind = np.arange(0.0,1.5,0.5)
   width = 0.2
   fig, ax = plt.subplots()
-  aux=[np.sum(StallsTotals[0]),np.sum(StallsTotals[1]),np.sum(StallsTotals[2])]
-  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(33)),1.96*(np.std(StallsTotals[1])/np.sqrt(33)),1.96*(np.std(StallsTotals[2])/np.sqrt(33))]
+  aux=[np.sum(StallsTotals[0])/40,np.sum(StallsTotals[1])/40,np.sum(StallsTotals[2])/40]
+  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(33)/40),1.96*(np.std(StallsTotals[1])/np.sqrt(33)/40),1.96*(np.std(StallsTotals[2])/np.sqrt(33))/40]
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
   #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='F2V')
   #rects2 = ax.bar(ind, np.sum(StallsTotals[1]), width,yerr=(1.96*(np.std(StallsTotals[1])/np.sqrt(runs))),label='Greedy')
@@ -775,8 +775,8 @@ def graphtotals(numSegments):
   ind = np.arange(3)
   width = 0.2  
   fig, ax = plt.subplots()
-  aux=[np.sum(RebuffersTotals[0]),np.sum(RebuffersTotals[1]),np.sum(RebuffersTotals[2])]
-  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))]
+  aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
+  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))/40]
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
   #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='F2V')
   #rects2 = ax.bar(ind, np.sum(RebuffersTotals[1]), width,yerr=(1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs))),label='Greedy')

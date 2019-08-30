@@ -4,7 +4,7 @@ import numpy as np
 
 import math
 
-Limiares=[100,0.8,20,30,15]
+Limiares=[50,1,20,30,15]
 
 class guloso():
 

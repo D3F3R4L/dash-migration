@@ -188,6 +188,24 @@ TcpStreamClientHelper::GetServerAddress(ApplicationContainer clientApps, Ptr<Nod
   return i;
 }
 
+std::string
+TcpStreamClientHelper::GetNewServerAddress(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  std::string i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->GetNewServerAddress();
+  return i;
+}
+
+bool
+TcpStreamClientHelper::GetHandover(ApplicationContainer clientApps, Ptr<Node> node)
+{
+  bool i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->checkHandover();
+  return i;
+}
+
 Ptr<Application>
 TcpStreamClientHelper::InstallPriv (Ptr<Node> node, std::string algo, uint16_t clientId) const
 { //NS_LOG_UNCOND("clienthelper InstallPriv 130");

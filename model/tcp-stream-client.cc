@@ -324,9 +324,8 @@ TcpStreamClient::RequestRepIndex ()
   algorithmReply answer;
 
   answer = algo->GetNextRep ( m_segmentCounter, m_clientId );
-  m_currentRepIndex = answer.nextRepIndex;//NS_LOG_UNCOND(answer.nextRepIndex);
+  m_currentRepIndex = answer.nextRepIndex;
   NS_ASSERT_MSG (answer.nextRepIndex <= m_highestRepIndex, "The algorithm returned a representation index that's higher than the maximum");
-
   m_playbackData.playbackIndex.push_back (answer.nextRepIndex);
   m_bDelay = answer.nextDownloadDelay;
    //std::cerr << m_segmentCounter << "\n";
@@ -563,6 +562,19 @@ TcpStreamClient::SetHandover(Address ip)
 {
   handover=true;
   newip=ip;
+}
+
+std::string
+TcpStreamClient::GetNewServerAddress()
+{
+  std::string a = ToString(Ipv4Address::ConvertFrom (newip));
+  return a;
+}
+
+bool
+TcpStreamClient::checkHandover()
+{
+  return handover;
 }
 
 void

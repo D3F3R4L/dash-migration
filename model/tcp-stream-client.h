@@ -86,6 +86,8 @@ public:
   void SetRemote (Address ip, uint16_t port, uint16_t polId);
   void HandoverApplication (Address ip);
   bool check ();
+  std::string GetNewServerAddress();
+  bool checkHandover();
   void SetHandover (Address ip);
   double GetBufferUnderrunTotalTime();
   uint64_t GetBufferUnderrunCount();
