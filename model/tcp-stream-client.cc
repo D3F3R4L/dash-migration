@@ -117,7 +117,6 @@ TcpStreamClient::Controller (controllerEvent event)
               HandoverApplication(newip);
               handover=false;
             }
-
           if (m_segmentCounter < m_lastSegmentIndex)
             { 
               m_segmentCounter++; NS_LOG_UNCOND(m_segmentCounter);
@@ -483,6 +482,7 @@ TcpStreamClient::PlaybackHandle ()
     }
   }
   NS_LOG_UNCOND("fudeu");
+  NS_LOG_UNCOND(m_clientId);
   return true;
 }
 
@@ -689,8 +689,11 @@ TcpStreamClient::ConnectionSucceeded (Ptr<Socket> socket)
 { //NS_LOG_UNCOND("client ConnectionSucceeded 571");
   NS_LOG_FUNCTION (this << socket);
   NS_LOG_LOGIC ("Tcp Stream Client connection succeeded");
-  controllerEvent event = init;
-  Controller (event);
+  if (state==initial)
+  {
+    controllerEvent event = init;
+    Controller (event);
+  }
 }
 
 void

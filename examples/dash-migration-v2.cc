@@ -54,7 +54,7 @@ double StartMMESV2=0;
 double StartMMESV3=0;
 double StartMMECloud=0;
 uint16_t n=3;
-uint16_t MaxClientsSV=15;
+uint16_t MaxClientsSV=100;
 uint32_t numberOfClients;
 uint32_t simulationId = 0;
 std::vector <double> throughputs;
@@ -389,6 +389,7 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
 {
   getClientsOnServer(serverApp, serverHelper, servers);
   getClientsHandover(clientApps,clientHelper,clients);
+  getClientsStallsRebuffers(clientApps,clientHelper,clients);
   /*
   for (uint k = 0; k < 4; k++)
   {
@@ -400,52 +401,58 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   }*/
   for (uint i = 0; i < numberOfClients; i++)
   {
-    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip;
-    std::string bestSv = execute(filename.c_str());
-    //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-    //system(filename.c_str());
-    std::vector <std::string> BestServers;
-    BestServers = split(bestSv.c_str(), " ");
-    bool jump=false;
-    for (uint j = 0; j < BestServers.size(); j++)
+    NS_LOG_UNCOND(Stalls[i]);
+    NS_LOG_UNCOND(Rebuffers[i]);
+    NS_LOG_UNCOND(throughputs[i]);
+    if (Stalls[i]>=2 or Rebuffers[i]>=2,throughputs[i]<0.4)
     {
-      Address SvIp;
-      uint16_t aux;
-      switch(BestServers[j].at(0))
+      std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+      std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip;
+      std::string bestSv = execute(filename.c_str());
+      //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
+      //system(filename.c_str());
+      std::vector <std::string> BestServers;
+      BestServers = split(bestSv.c_str(), " ");
+      bool jump=false;
+      for (uint j = 0; j < BestServers.size(); j++)
       {
-        case '1':
-          SvIp=server1Address;
-          aux=0;
-          break;
-        case '2':
-          SvIp=server2Address;
-          aux=1;
-          break;
-        case '3':
-          SvIp=server3Address;
-          aux=2;
-          break;
-        case '4':
-          SvIp=cloudAddress;
-          aux=3;
-          break;
-        case '5':
-          jump=true;
-          break;
-      }
-      if (ip==BestServers[j] or jump)
-      {
-        j=BestServers.size();
-      }
-      else
-      {
-        if(SClients[aux]+queue[aux]<MaxClientsSV or aux==3)
+        Address SvIp;
+        uint16_t aux;
+        switch(BestServers[j].at(0))
         {
-          std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
-          queue[aux]=queue[aux]+1;
-          ServerHandover(clientApps, clientHelper, SvIp, clients,i);
+          case '1':
+            SvIp=server1Address;
+            aux=0;
+            break;
+          case '2':
+            SvIp=server2Address;
+            aux=1;
+            break;
+          case '3':
+            SvIp=server3Address;
+            aux=2;
+            break;
+          case '4':
+            SvIp=cloudAddress;
+            aux=3;
+            break;
+          case '5':
+            jump=true;
+            break;
+        }
+        if (ip==BestServers[j] or jump)
+        {
           j=BestServers.size();
+        }
+        else
+        {
+          if(SClients[aux]+queue[aux]<MaxClientsSV or aux==3)
+          {
+            std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
+            queue[aux]=queue[aux]+1;
+            ServerHandover(clientApps, clientHelper, SvIp, clients,i);
+            j=BestServers.size();
+          }
         }
       }
     }
@@ -462,6 +469,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
 {
   getClientsOnServer(serverApp, serverHelper, servers);
   getClientsHandover(clientApps,clientHelper,clients);
+  getClientsStallsRebuffers(clientApps,clientHelper,clients);
   /*
   for (uint k = 0; k < 4; k++)
   {
@@ -473,8 +481,11 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   }*/
   for (uint i = 0; i < numberOfClients; i++)
   {
+    NS_LOG_UNCOND(Stalls[i]);
+    NS_LOG_UNCOND(Rebuffers[i]);
+    NS_LOG_UNCOND(throughputs[i]);
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3];
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ToString(throughputs[i])+" "+ToString(Stalls[i])+" "+ToString(Rebuffers[i]);
     std::string bestSv = execute(filename.c_str());
     Address SvIp;
     uint16_t aux;
@@ -540,8 +551,6 @@ main (int argc, char *argv[])
   uint16_t pol=0;
 
   //lastRx=[numberOfClients];
-  throughputs.reserve(numberOfClients);
-  throughputs.resize(numberOfClients);
 
   CommandLine cmd;
   cmd.Usage ("Simulation of streaming with DASH.\n");
@@ -614,25 +623,25 @@ main (int argc, char *argv[])
   PointToPointHelper p2p;
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("11ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("1ms"));
   NetDeviceContainer wanIpDevices;
   wanIpDevices = p2p.Install (serverNode, apNode);
 
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("12ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("24ms"));
   NetDeviceContainer wanIpDevices2;
   wanIpDevices2 = p2p.Install (serverNode2, serverNode);
 
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("11ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("46ms"));
   NetDeviceContainer wanIpDevices3;
   wanIpDevices3 = p2p.Install (serverNode3, serverNode2);
 
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("96ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("130ms"));
   NetDeviceContainer wanIpDevices4;
   wanIpDevices4 = p2p.Install (cloudNode, serverNode3);
 
@@ -889,7 +898,12 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
       app->SetStartTime (Seconds (startTime));
       //app->SetStopTime(Seconds (startTime+10));
     }
-
+  throughputs.reserve(numberOfClients);
+  throughputs.resize(numberOfClients);
+  Stalls.reserve(numberOfClients);
+  Stalls.resize(numberOfClients);
+  Rebuffers.reserve(numberOfClients);
+  Rebuffers.resize(numberOfClients);
 /*
 
   /* Install TCP Receiver on the access point */
@@ -935,23 +949,23 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
 
   if (pol==0)
   {
-  	Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+    Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
   }
   else
   {
-  	if (pol==1)
-  	{
-  		type="guloso";
-  		Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
-  	}
-  	else
-  	{
-  	  if (pol==2)
-  	  {
-  		type="aleatorio";
-  		Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
-  	  }
-  	}
+    if (pol==1)
+    {
+      type="guloso";
+      Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+    }
+    else
+    {
+      if (pol==2)
+      {
+      type="aleatorio";
+      Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+      }
+    }
   }
   
   InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfClients),ToString(simulationId),ToString(pol));
