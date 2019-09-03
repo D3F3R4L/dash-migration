@@ -46,11 +46,15 @@ class AHP():
 
     def Influenciacompeso(self, parametro):
         matriz = np.array([
-            [1,   2,   3,   4],
-            [1/2, 1,   3,   4],
-            [1/3, 1/3, 1,   4],
-            [1/4, 1/4, 1/4, 1]
+            [1,   4,   16,   64],
+            [1/4, 1,   4,   16],
+            [1/16, 1/4, 1,   4],
+            [1/64, 1/16, 1/4, 1]
         ])
+        #[1,   2,   3,   4],
+        #[1/2, 1,   3,   4],
+        #[1/3, 1/3, 1,   4],
+        #[1/4, 1/4, 1/4, 1]
         precisao = 10
         peso = AHP.AutoValor(matriz, precisao)
         prioridadesGlobais = {}
