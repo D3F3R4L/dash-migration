@@ -58,7 +58,7 @@ def concatenarServers():
       StallValues[2]=int(float(fields[5]))
       StallValues[3]=int(float(fields[7]))
 
-    files= '*throughputServer_sim{simu}*'.format(simu=simu)
+    files= '*throughputServer_sim{simu}_*'.format(simu=simu)
     throughputFiles = glob.glob(files)
     throughputFiles.sort()
     j=0

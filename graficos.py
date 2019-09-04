@@ -31,6 +31,9 @@ MMEsTotals=[]
 qualityLevelTotals=[]
 StallsTotals=[]
 RebuffersTotals=[]
+bitSwitchtotals=[]
+bitSwitchUptotals=[]
+bitSwitchDowntotals=[]
 
 
 def main():
@@ -70,7 +73,7 @@ def main():
 # Buffer Underrun 
 ###################
 def bufferUnderrunGraphs():
-  files= '*sim{simu}*bufferUnderrunLog*'.format(simu=simulation)
+  files= '*sim{simu}_*bufferUnderrunLog*'.format(simu=simulation)
   bufferUnderrunFiles = glob.glob(files)
   print(bufferUnderrunFiles)
   S1timeTotal=[]
@@ -214,10 +217,10 @@ def throughputGraphs(numSegments):
   plt.plot(x,S4Throughput,color='y')
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
-  red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Tier-2 EP-1')
+  red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Tier-3')
   green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
-  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-3')
-  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1 Cloud')
+  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-1')
+  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Server Throughput")
   save = 'ServerThroughput.png'
@@ -235,7 +238,7 @@ def throughtputServer():
   print('Working in throughtputServer...')
   while(i<runs):
     simulation=i
-    files= '*throughputServer*sim{simu}*'.format(simu=simulation)
+    files= '*throughputServer*sim{simu}_*'.format(simu=simulation)
     throughputFiles = glob.glob(files)
     throughputFiles.sort()
     print(throughputFiles)
@@ -276,10 +279,10 @@ def throughtputServer():
   plt.plot(Times[3],Throughputs[3],color='y',ls='-',lw=1)
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
-  red_line = mlines.Line2D([], [], color='Red',ls='--',lw=3, label='Tier-2 EP-1')
+  red_line = mlines.Line2D([], [], color='Red',ls='--',lw=3, label='Tier-3')
   green_line = mlines.Line2D([], [], color='g',ls='-.',lw=3, label='Tier-2 EP-2')
-  blue_line = mlines.Line2D([], [], color='b',ls=':',lw=3, label='Tier-2 EP-3')
-  yellow_line = mlines.Line2D([], [], color='y',ls='-',lw=2, label='Tier-1 Cloud')
+  blue_line = mlines.Line2D([], [], color='b',ls=':',lw=3, label='Tier-2 EP-1')
+  yellow_line = mlines.Line2D([], [], color='y',ls='-',lw=2, label='Tier-1')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.grid(True)
   plt.title("Server Throughput")
@@ -293,10 +296,10 @@ def throughtputServer():
   plt.plot(Times[3],MMEs[3],color='y')
   plt.xlabel('Seconds')
   plt.ylabel('Mb/s')
-  red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Tier-2 EP-1')
+  red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Tier-3')
   green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
-  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-3')
-  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1 Cloud')
+  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-1')
+  yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Exponential Moving Average of Server Throughput")
   plt.grid(True)
@@ -327,9 +330,15 @@ def qualityGraphs(numSegments):
   S2ClientsMean=[]
   S3ClientsMean=[]
   S4ClientsMean=[]
+  bitSwitchMean=[]
+  bitSwitchUpMean=[]
+  bitSwitchDownMean=[]
   while k<runs:
     simulation=k
-    files= '*sim{simu}*playbackLog*'.format(simu=simulation)
+    bitSwitch=0
+    bitSwitchUp=0
+    bitSwitchDown=0
+    files= '*sim{simu}_*playbackLog*'.format(simu=simulation)
     playbackFiles = glob.glob(files)
     S1Quality=np.zeros(numSegments)
     S2Quality=np.zeros(numSegments)
@@ -379,6 +388,14 @@ def qualityGraphs(numSegments):
           S4Quality[i]=S4Quality[i]+y1
           S4Clients[i]=S4Clients[i]+1
         i+=1
+      for l in range (0,len(qualityLevel)):
+        if l!=0:
+          if (qualityLevel[l]!=qualityLevel[l-1]):
+            bitSwitch+=1
+            if (qualityLevel[l]>qualityLevel[l-1]):
+              bitSwitchUp+=1
+            else:
+              bitSwitchDown+=1
       j+=1
     S1Quality=divisor(S1Quality,S1Clients)
     S2Quality=divisor(S2Quality,S2Clients)
@@ -392,6 +409,9 @@ def qualityGraphs(numSegments):
     S2ClientsMean.append(S2Clients)
     S3ClientsMean.append(S3Clients)
     S4ClientsMean.append(S4Clients)
+    bitSwitchMean.append(bitSwitch/40)
+    bitSwitchUpMean.append(bitSwitchUp/40)
+    bitSwitchDownMean.append(bitSwitchDown/40)
     k+=1
   worstClientQuality=toBitrate(worstClientQuality)
   bestClientQuality=toBitrate(bestClientQuality)
@@ -403,16 +423,19 @@ def qualityGraphs(numSegments):
   S2ClientsMean=np.mean(S2ClientsMean,axis=0)
   S3ClientsMean=np.mean(S3ClientsMean,axis=0)
   S4ClientsMean=np.mean(S4ClientsMean,axis=0)
+  bitSwitchtotals.append(np.mean(bitSwitchMean))
+  bitSwitchUptotals.append(np.mean(bitSwitchUpMean))
+  bitSwitchDowntotals.append(np.mean(bitSwitchDownMean))
   qualityLevelTotals.append(S1QualityMean)
   qualityLevelTotals.append(S2QualityMean)
   qualityLevelTotals.append(S3QualityMean)
   qualityLevelTotals.append(S4QualityMean)
   x=np.arange(0,numSegments)
   fig,ax =plt.subplots()
-  p1,=plt.plot(x,S1QualityMean,color='r',markersize=15, label='Tier-2 EP-1')
+  p1,=plt.plot(x,S1QualityMean,color='r',markersize=15, label='Tier-3')
   p2,=plt.plot(x,S2QualityMean,color='g',markersize=15, label='Tier-2 EP-2')
-  p3,=plt.plot(x,S3QualityMean,color='b',markersize=15, label='Tier-2 EP-3')
-  p4,=plt.plot(x,S4QualityMean,color='y',markersize=15, label='Tier-1 Cloud')
+  p3,=plt.plot(x,S3QualityMean,color='b',markersize=15, label='Tier-2 EP-1')
+  p4,=plt.plot(x,S4QualityMean,color='y',markersize=15, label='Tier-1')
   plt.xlabel('Segments')
   plt.ylabel('Video bitrate(Kbps)')
   MeansSV.append(int(np.mean(S1QualityMean)))
@@ -436,10 +459,10 @@ def qualityGraphs(numSegments):
   
   i=0
   fig,ax =plt.subplots()
-  p1,=plt.plot([],[],color='r',markersize=15, label='Tier-2 EP-1')
+  p1,=plt.plot([],[],color='r',markersize=15, label='Tier-3')
   p2,=plt.plot([],[],color='g',markersize=15, label='Tier-2 EP-2')
-  p3,=plt.plot([],[],color='b',markersize=15, label='Tier-2 EP-3')
-  p4,=plt.plot([],[],color='y',markersize=15, label='Tier-1 Cloud')
+  p3,=plt.plot([],[],color='b',markersize=15, label='Tier-2 EP-1')
+  p4,=plt.plot([],[],color='y',markersize=15, label='Tier-1')
   for x1, x2, y1,y2 in zip(x, x[1:], bestClientQuality, bestClientQuality[1:]):
     if str(bestClientServer[i])=="1.0.0.1":
       plt.plot([x1, x2], [y1, y2], 'r')
@@ -466,10 +489,10 @@ def qualityGraphs(numSegments):
 
   i=0
   fig,ax =plt.subplots()
-  p1,=plt.plot([],[],color='r',markersize=15, label='Tier-2 EP-1')
+  p1,=plt.plot([],[],color='r',markersize=15, label='Tier-3')
   p2,=plt.plot([],[],color='g',markersize=15, label='Tier-2 EP-2')
-  p3,=plt.plot([],[],color='b',markersize=15, label='Tier-2 EP-3')
-  p4,=plt.plot([],[],color='y',markersize=15, label='Tier-1 Cloud')
+  p3,=plt.plot([],[],color='b',markersize=15, label='Tier-2 EP-1')
+  p4,=plt.plot([],[],color='y',markersize=15, label='Tier-1')
   for x1, x2, y1,y2 in zip(x, x[1:], worstClientQuality, worstClientQuality[1:]):
     if str(worstClientServer[i])=="1.0.0.1":
       plt.plot([x1, x2], [y1, y2], 'r')
@@ -497,10 +520,10 @@ def qualityGraphs(numSegments):
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 
-  red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-2 EP-1')
+  red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-3')
   green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
-  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-3')
-  yellow_line = mlines.Line2D([], [], color='y',markersize=15,label='Tier-1 Cloud')
+  blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-1')
+  yellow_line = mlines.Line2D([], [], color='y',markersize=15,label='Tier-1')
   width = 0.6
   fig,ax =plt.subplots()
   p1 = plt.bar(x, S1ClientsMean, width,color='r',align='edge')
@@ -519,9 +542,8 @@ def qualityGraphs(numSegments):
   ax.set_ylim(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1))
   ax.grid(which='both')
   plt.xlabel('Segments')
-  plt.ylabel('Clients')
-  plt.title('Clients per Server Mean')
-  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
+  plt.ylabel('Clients per Server Mean')
+  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(0.5, -0.05),loc='upper center', fontsize='small',ncol=4,fancybox=True, shadow=True)
   save = 'clientsPerServer.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -544,7 +566,7 @@ def StallsGraphs():
   print('Working in StallLog...')
   while(k<runs):
     simulation=k
-    files= '*sim{simu}*StallLog*'.format(simu=simulation)
+    files= '*sim{simu}_*StallLog*'.format(simu=simulation)
     StallFile = glob.glob(files)
     j=0
     while(j<len(StallFile)):
@@ -564,7 +586,7 @@ def RebufferGraphs():
   print('Working in RebufferLog...')
   while (k<runs):
     simulation=k
-    files= '*sim{simu}*RebufferLog*'.format(simu=simulation)
+    files= '*sim{simu}_*RebufferLog*'.format(simu=simulation)
     RebufferFile = glob.glob(files)
     j=0
     while(j<len(RebufferFile)):
@@ -611,7 +633,7 @@ def barGraphs(collums, graph):
     ax.set_ylabel('Quantity')
     ax.set_title('Number of Stalls per Server')
     ax.set_xticks(ind)
-    ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+    ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
     ax.legend()
     save = 'Stalls.png'
   else:
@@ -619,7 +641,7 @@ def barGraphs(collums, graph):
     ax.set_ylabel('Seconds')
     ax.set_title('Rebuffers duration per Server')
     ax.set_xticks(ind)
-    ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+    ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
     ax.legend()
     save = 'Rebuffers.png'
   
@@ -635,13 +657,15 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],throughtputTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='F2V')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog2Video')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
     blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
     plt.legend(handles=[red_line,green_line,blue_line])
     name='Tier-2 EP-{pol}'.format(pol=(i+1))
     if i==3:
-      name='Tier-1 Cloud'
+      name='Tier-1'
+    if i==0:
+      save= 'Tier-3'
     plt.grid(True)
     plt.title(name)
     plt.savefig(name,bbox_inches="tight",dpi=300)
@@ -654,13 +678,15 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],MMEsTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='F2V')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog2Video')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
     blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
     plt.legend(handles=[red_line,green_line,blue_line])
     name='EMA of Tier-2 EP-{pol}'.format(pol=(i+1))
     if i==3:
-      name='EMA of Tier-1 Cloud'
+      name='EMA of Tier-1'
+    if i==0:
+      save= 'EMA of Tier-3'
     plt.grid(True)
     plt.title(name)
     plt.savefig(name,bbox_inches="tight",dpi=300)
@@ -670,20 +696,22 @@ def graphtotals(numSegments):
   for i in range (0,4):
     x=np.arange(0,numSegments)
     fig,ax =plt.subplots()
-    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='F2V')
+    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='Fog2Video')
     p2,=plt.plot(x,qualityLevelTotals[i+4],color='g',ls='-.',lw=3, label='Greedy')
     p3,=plt.plot(x,qualityLevelTotals[i+8],color='b',ls=':',lw=3, label='Random')
     plt.xlabel('Segments')
     plt.ylabel('Video bitrate(Kbps)')
-    red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-2 EP-1')
+    red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-3')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
-    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-3')
-    yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1 Cloud')
+    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Tier-2 EP-1')
+    yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1')
     plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
     l1=plt.legend(handles=[p1,p2,p3],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
     save = 'Tier-2 EP-{pol}'.format(pol=(i+1))
     if i==3:
-      save = 'Tier-1 Cloud'
+      save = 'Tier-1'
+    if i==0:
+      save= 'Tier-3'
     plt.title(save)
     #plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
     plt.grid(True)
@@ -695,12 +723,12 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='F2V')
+  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='Fog2Video')
   rects2 = ax.bar(ind, StallsTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, StallsTotals[2], width,label='Random')
   ax.set_ylabel('Number of Stall Events')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+  ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
   plt.grid(True,axis='y')
   save = 'StallsTotals.png'
@@ -711,12 +739,12 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2  
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='F2V')
+  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='Fog2Video')
   rects2 = ax.bar(ind, RebuffersTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, RebuffersTotals[2], width,label='Random')
   ax.set_ylabel('Stall Duration (Seconds)')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+  ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
   plt.grid(True,axis='y')
   save = 'RebuffersTotals.png'
@@ -727,12 +755,12 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='F2V')
+  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='Fog2Video')
   rects2 = ax.bar(ind, MeansTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, MeansTotals[2], width,label='Random')
   ax.set_ylabel('Bitrate Mean (Mbps)')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Tier-2 EP-1', 'Tier-2 EP-2', 'Tier-2 EP-3', 'Tier-1 Cloud'))
+  ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
   plt.grid(True,axis='y')
   save = 'BitrateTotals.png'
@@ -741,7 +769,7 @@ def graphtotals(numSegments):
   ind = np.arange(2)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, MeansBW[0], width,label='F2V')
+  rects1 = ax.bar(ind - width, MeansBW[0], width,label='Fog2Video')
   rects2 = ax.bar(ind, MeansBW[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, MeansBW[2], width,label='Random')
   ax.set_ylabel('Bitrate Mean (Mbps)')
@@ -759,34 +787,52 @@ def graphtotals(numSegments):
   width = 0.2
   fig, ax = plt.subplots()
   aux=[np.sum(StallsTotals[0])/40,np.sum(StallsTotals[1])/40,np.sum(StallsTotals[2])/40]
-  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(33)/40),1.96*(np.std(StallsTotals[1])/np.sqrt(33)/40),1.96*(np.std(StallsTotals[2])/np.sqrt(33))/40]
+  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(runs)/40),1.96*(np.std(StallsTotals[1])/np.sqrt(runs)/40),1.96*(np.std(StallsTotals[2])/np.sqrt(runs))/40]
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='F2V')
+  #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='Fog2Video')
   #rects2 = ax.bar(ind, np.sum(StallsTotals[1]), width,yerr=(1.96*(np.std(StallsTotals[1])/np.sqrt(runs))),label='Greedy')
   #rects3 = ax.bar(ind, np.sum(StallsTotals[2]),width,yerr=(1.96*(np.std(StallsTotals[2])/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Number of Stall Events')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('F2V', 'Greedy', 'Random'))
+  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
   #ax.legend()
   plt.grid(True,axis='y')
   save = 'StallsTotal.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
-  ind = np.arange(3)
+  ind = np.arange(0.0,1.5,0.5)
   width = 0.2  
   fig, ax = plt.subplots()
   aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
-  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))/40]
+  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))/40]
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='F2V')
+  #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='Fog2Video')
   #rects2 = ax.bar(ind, np.sum(RebuffersTotals[1]), width,yerr=(1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs))),label='Greedy')
   #rects3 = ax.bar(ind + width, np.sum(RebuffersTotals[2]),width,yerr=(1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Stall Duration (Seconds)')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('F2V', 'Greedy', 'Random'))
+  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
   #ax.legend()
   plt.grid(True,axis='y')
   save = 'RebuffersTotal.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+
+  ind = np.arange(3)
+  width = 0.2  
+  fig, ax = plt.subplots()
+  #aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
+  #confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))/40]
+  #rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
+  rects1 = ax.bar(ind - width, bitSwitchDowntotals,width,yerr=(1.96*(np.std(bitSwitchDowntotals)/np.sqrt(runs))),color='red',label='Downgrade')
+  rects2 = ax.bar(ind, bitSwitchUptotals, width,yerr=(1.96*(np.std(bitSwitchUptotals)/np.sqrt(runs))),color='purple',label='Upgrade')
+  rects3 = ax.bar(ind + width, bitSwitchtotals,width,yerr=(1.96*(np.std(bitSwitchtotals)/np.sqrt(runs))),color='grey',label='Total')
+  ax.set_ylabel('Average Bitrate Switch')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
+  ax.legend()
+  plt.grid(True,axis='y')
+  save = 'BitrateSwitchs.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 

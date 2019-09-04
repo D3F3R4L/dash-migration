@@ -17,7 +17,7 @@ def main():
 # Buffer Underrun 
 ###################
 def bufferUnderrunGraphs():
-  files= '*sim{simu}*bufferUnderrunLog*'.format(simu=simulation)
+  files= '*sim{simu}_*bufferUnderrunLog*'.format(simu=simulation)
   bufferUnderrunFiles = glob.glob(files)
   #print(bufferUnderrunFiles)
   S1timeTotal=0

@@ -13,7 +13,7 @@ class guloso():
 
     def mudarFog(self, fog, Fogs):
         s = [x for x in Fogs if x not in fog]
-        for i in s:
+        for i in list(reversed(s)):
             mudar = False
             parametro = np.array(Fogs[i]).flat
             n=parametro[4]
