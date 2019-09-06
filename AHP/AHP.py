@@ -9,6 +9,7 @@ folder=sys.argv[1]
 simu=sys.argv[2]
 delays=[sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6]]
 ip=sys.argv[7]
+T=[sys.argv[8],sys.argv[9],sys.argv[10],sys.argv[11]]
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)
@@ -68,7 +69,7 @@ def concatenarServers():
     StallValues[2]=int(float(fields[5]))
     StallValues[3]=int(float(fields[7]))
 
-  files= '*throughputServer_sim{simu}*'.format(simu=simu)
+  files= '*throughputServer_sim{simu}_*'.format(simu=simu)
   throughputFiles = glob.glob(files)
   throughputFiles.sort()
   j=0
@@ -91,14 +92,17 @@ def concatenarServers():
 
   for i in range(0,4):
     ServerIP = ServersIP[i]
-    #if i==0 or i==1 or i==2:
-    #StallValues[i]=i
-    #if i==3:
+    if i==0 :
+      ThroughputValues[i]=10
+    elif i==1 or i==2:
+      ThroughputValues[i]=20
+    elif i==3:
+      ThroughputValues[i]=30
     #  print('Delays: ',delays)
     #  print('ThroughputValues: ',ThroughputValues)
     #  print('Stalls: ',StallValues)
     #  print('Rebuffers: ',RebufferValues)
-    Servers[ServerIP] = [StallValues[i],RebufferValues[i],delays[i],1]
+    Servers[ServerIP] = [StallValues[i],RebufferValues[i],delays[i],ThroughputValues[i]]
     #Servers[ServerIP] = [StallValues[i],RebufferValues[i],ThroughputValues[i],delays[i]]
   return Servers
 

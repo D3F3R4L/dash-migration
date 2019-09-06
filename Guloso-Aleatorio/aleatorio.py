@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 import math
-Limiares=[80,0.4,2,2,15]
+Limiares=[80,-1,2,2,15]
 
 
 class aleatorio():

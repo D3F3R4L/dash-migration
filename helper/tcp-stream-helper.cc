@@ -161,6 +161,42 @@ TcpStreamClientHelper::GetNumbersOfBufferUnderrun(ApplicationContainer clientApp
   return i;
 }
 
+uint64_t
+TcpStreamClientHelper::GetRepIndex(ApplicationContainer clientApps, Ptr<Node> node)
+{ 
+  uint64_t i;
+  Ptr<Application> app = node->GetApplication(0);
+  i=app->GetObject<TcpStreamClient> ()->GetRepIndex();
+  switch(i)
+  {
+    case 0:
+      i=400;
+      break;
+    case 1:
+      i=650;
+      break;
+    case 2:
+      i=1000;
+      break;
+    case 3:
+      i=1500;
+      break;
+    case 4:
+      i=2250;
+      break;
+    case 5:
+      i=3400;
+      break;
+    case 6:
+      i=4700;
+      break;
+    case 7:
+      i=6000;
+      break;
+  }
+  return i;
+}
+
 double
 TcpStreamClientHelper::GetThroughput(ApplicationContainer clientApps, Ptr<Node> node)
 { 

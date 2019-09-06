@@ -171,6 +171,8 @@ public:
   
   bool GetHandover(ApplicationContainer clientApps, Ptr<Node> node);
 
+  uint64_t GetRepIndex(ApplicationContainer clientApps, Ptr<Node> node);
+
 private:
   /**
    * Install an ns3::TcpStreamClient on the node configured with all the

@@ -529,8 +529,14 @@ TcpStreamClient::GetBufferUnderrunTotalTime()
 uint64_t
 TcpStreamClient::GetBufferUnderrunCount()
 {
-
   return bufferUnderrunCount;
+}
+
+uint64_t
+TcpStreamClient::GetRepIndex()
+{
+
+  return m_currentRepIndex;
 }
 
 double

@@ -94,6 +94,7 @@ public:
   std::string GetServerAddress();
   double GetThroughput();
   double GetPlaybackStart();
+  uint64_t GetRepIndex();
 
 protected:
   virtual void DoDispose (void);

@@ -314,7 +314,7 @@ def throughtputServer():
 def qualityGraphs(numSegments):
   k=0
   print('Working in QualityGraphs...')
-  bestScore=0
+  bestScore=-1
   worstScore=10000000
   Means=[]
   MeansSV=[]
@@ -473,6 +473,7 @@ def qualityGraphs(numSegments):
     else:
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
+  print(bestClientQuality)
   Means.append(int(np.mean(bestClientQuality)))
   red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=Means[0]))
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )

@@ -54,7 +54,7 @@ double StartMMESV2=0;
 double StartMMESV3=0;
 double StartMMECloud=0;
 uint16_t n=3;
-uint16_t MaxClientsSV=100;
+uint16_t MaxClientsSV=300;
 uint32_t numberOfClients;
 uint32_t simulationId = 0;
 std::vector <double> throughputs;
@@ -384,12 +384,49 @@ getClientsHandover(ApplicationContainer clientApps, TcpStreamClientHelper client
   NS_LOG_UNCOND(queue[3]);
 }
 
+uint64_t
+getRepIndex(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, Ptr <Node> clients)
+{
+  return clientHelper.GetRepIndex(clientApps,clients);
+}
+
 void
 politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
 {
   getClientsOnServer(serverApp, serverHelper, servers);
   getClientsHandover(clientApps,clientHelper,clients);
   getClientsStallsRebuffers(clientApps,clientHelper,clients);
+  double T1=0;
+  double T2=0;
+  double T3=0;
+  double T4=0;
+  uint16_t C1=0;
+  uint16_t C2=0;
+  uint16_t C3=0;
+  uint16_t C4=0;
+  for (uint i = 0; i < numberOfClients; i++)
+  {
+    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+    switch(ip)
+    {
+      case "1.0.0.1":
+        T1 = T1 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C1+=1;
+        break;
+      case "2.0.0.1":
+        T2 = T2 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C2+=1;
+        break;
+      case "3.0.0.1":
+        T3 = T3 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C3+=1;
+        break;
+      case "4.0.0.1":
+        T4 = T4 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C4+=1;
+        break;
+    }
+  }
   /*
   for (uint k = 0; k < 4; k++)
   {
@@ -404,10 +441,15 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     NS_LOG_UNCOND(Stalls[i]);
     NS_LOG_UNCOND(Rebuffers[i]);
     NS_LOG_UNCOND(throughputs[i]);
-    if (Stalls[i]>=2 or Rebuffers[i]>=2,throughputs[i]<0.4)
+    uint64_t Tc = getRepIndex(clientApps,clientHelper,clients.at (i).first);
+    double Tf1 = (T1 + Tc)/(C1+1);
+    double Tf2 = (T2 + Tc)/(C2+1);
+    double Tf3 = (T3 + Tc)/(C3+1);
+    double Tf4 = (T4 + Tc)/(C4+1);
+    if (true) //Stalls[i]>=2 or Rebuffers[i]>=2
     {
       std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-      std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip;
+      std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip+" "+Tf1+" "+Tf2+" "+Tf3+" "+Tf4;
       std::string bestSv = execute(filename.c_str());
       //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
       //system(filename.c_str());
@@ -446,7 +488,7 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
         }
         else
         {
-          if(SClients[aux]+queue[aux]<MaxClientsSV or aux==3)
+          if(SClients[aux]+queue[aux]<MaxClientsSV)
           {
             std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
             queue[aux]=queue[aux]+1;
@@ -488,6 +530,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
     std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ToString(throughputs[i])+" "+ToString(Stalls[i])+" "+ToString(Rebuffers[i]);
     std::string bestSv = execute(filename.c_str());
     Address SvIp;
+    NS_LOG_UNCOND(ip);
     uint16_t aux;
     //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
     //system(filename.c_str());
@@ -512,7 +555,7 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
         aux=3;
         break;
     }
-    if ((ip!=BestServers[0] and SClients[aux]+queue[aux]<MaxClientsSV) or aux==3)
+    if ((ip!=bestSv and SClients[aux]+queue[aux]<MaxClientsSV))
     {
       std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
       queue[aux]=queue[aux]+1;
@@ -544,10 +587,11 @@ main (int argc, char *argv[])
   simulationId = 0;
   numberOfClients = 4;
   uint32_t numberOfServers = 5;
+  uint16_t numberOfHops = 4;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
-  int seedValue = 1;
+  int seedValue = 0;
   uint16_t pol=0;
 
   //lastRx=[numberOfClients];
@@ -594,7 +638,7 @@ main (int argc, char *argv[])
 
   /* Create Nodes */
   NodeContainer networkNodes;
-  networkNodes.Create (numberOfClients + numberOfServers);
+  networkNodes.Create (numberOfClients + numberOfServers + numberOfHops);
 
   /* Determin access point and server node */
   Ptr<Node> apNode = networkNodes.Get (0);
@@ -602,18 +646,22 @@ main (int argc, char *argv[])
   Ptr<Node> serverNode2 = networkNodes.Get (2);
   Ptr<Node> serverNode3 = networkNodes.Get (3);
   Ptr<Node> cloudNode = networkNodes.Get (4);
+  Ptr<Node> hop1 = networkNodes.Get (5);
+  Ptr<Node> hop2 = networkNodes.Get (6);
+  Ptr<Node> hop3 = networkNodes.Get (7);
+  Ptr<Node> hop4 = networkNodes.Get (8);
 
   /* Configure clients as STAs in the WLAN */
   NodeContainer staContainer;
   /* Begin at +2, because position 0 is the access point and position 1 is the server */
-  for (NodeContainer::Iterator i = networkNodes.Begin () + numberOfServers; i != networkNodes.End (); ++i)
+  for (NodeContainer::Iterator i = networkNodes.Begin () + numberOfServers + numberOfHops; i != networkNodes.End (); ++i)
     {
       staContainer.Add (*i);
     }
 
   /* Determin client nodes for object creation with client helper class */
   std::vector <std::pair <Ptr<Node>, std::string> > clients;
-  for (NodeContainer::Iterator i = networkNodes.Begin () + numberOfServers; i != networkNodes.End (); ++i)
+  for (NodeContainer::Iterator i = networkNodes.Begin () + numberOfServers + numberOfHops; i != networkNodes.End (); ++i)
     {
       std::pair <Ptr<Node>, std::string> client (*i, adaptationAlgo);
       clients.push_back (client);
@@ -624,26 +672,48 @@ main (int argc, char *argv[])
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("1ms"));
-  NetDeviceContainer wanIpDevices;
-  wanIpDevices = p2p.Install (serverNode, apNode);
+  NetDeviceContainer wanIpDevicesHops1;
+  wanIpDevicesHops1 = p2p.Install (hop1, apNode);
 
+  NetDeviceContainer wanIpDevicesHops;
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("24ms"));
-  NetDeviceContainer wanIpDevices2;
-  wanIpDevices2 = p2p.Install (serverNode2, serverNode);
+  wanIpDevicesHops.Add(p2p.Install (hop2, hop1));
 
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("46ms"));
-  NetDeviceContainer wanIpDevices3;
-  wanIpDevices3 = p2p.Install (serverNode3, serverNode2);
+  wanIpDevicesHops.Add(p2p.Install (hop3, hop2));
 
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("130ms"));
+  wanIpDevicesHops.Add(p2p.Install (hop4, hop3));
+
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("10Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  p2p.SetChannelAttribute ("Delay", StringValue ("1ns"));
+  NetDeviceContainer wanIpDevices;
+  wanIpDevices = p2p.Install (serverNode, hop1);
+
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("20Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  p2p.SetChannelAttribute ("Delay", StringValue ("1ns"));
+  NetDeviceContainer wanIpDevices2;
+  wanIpDevices2 = p2p.Install (serverNode2, hop2);
+
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("20Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  p2p.SetChannelAttribute ("Delay", StringValue ("1ns"));
+  NetDeviceContainer wanIpDevices3;
+  wanIpDevices3 = p2p.Install (serverNode3, hop3);
+
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("100Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  p2p.SetChannelAttribute ("Delay", StringValue ("1ns"));
   NetDeviceContainer wanIpDevices4;
-  wanIpDevices4 = p2p.Install (cloudNode, serverNode3);
+  wanIpDevices4 = p2p.Install (cloudNode, hop4);
 
   /* create MAC layers */
   WifiMacHelper wifiMac;
@@ -676,16 +746,23 @@ main (int argc, char *argv[])
   Ipv4AddressHelper address2;
   Ipv4AddressHelper address3;
   Ipv4AddressHelper address4;
+  Ipv4AddressHelper address5;
+  Ipv4AddressHelper address6;
+  Ipv4AddressHelper address7;
 
   /* IPs for WAN */
   address.SetBase ("1.0.0.0", "255.255.255.0");
   address2.SetBase ("2.0.0.0", "255.255.255.0");
   address3.SetBase ("3.0.0.0", "255.255.255.0");
   address4.SetBase ("4.0.0.0", "255.255.255.0");
+  address5.SetBase ("5.0.0.0", "255.255.255.0");
+  address7.SetBase ("7.0.0.0", "255.255.255.0");
   Ipv4InterfaceContainer wanInterface = address.Assign (wanIpDevices);
   Ipv4InterfaceContainer wanInterface2 = address2.Assign (wanIpDevices2);
   Ipv4InterfaceContainer wanInterface3 = address3.Assign (wanIpDevices3);
   Ipv4InterfaceContainer wanInterface4 = address4.Assign (wanIpDevices4);
+  Ipv4InterfaceContainer wanInterface5 = address5.Assign (wanIpDevicesHops);
+  Ipv4InterfaceContainer wanInterface7 = address7.Assign (wanIpDevicesHops1);
   
 
 server1Address = Address(wanInterface.GetAddress (0));
@@ -694,12 +771,17 @@ server3Address = Address(wanInterface3.GetAddress (0));
 cloudAddress = Address(wanInterface4.GetAddress (0));
 
   /* IPs for WLAN (STAs and AP) */
-  address.SetBase ("192.168.1.0", "255.255.255.0");
-  address.Assign (wlanDevices);
+  address6.SetBase ("192.168.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer wanInterface6 = address6.Assign (wlanDevices);
 
   /* Populate routing table */
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   uint16_t port = 9;
+
+  Ipv4GlobalRoutingHelper g;
+  Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> 
+  ("dynamic-global-routing.routes", std::ios::out);
+  g.PrintRoutingTableAllAt (Seconds (5), routingStream);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -789,13 +871,13 @@ cloudAddress = Address(wanInterface4.GetAddress (0));
   // wifiPhy.EnablePcapAll ("wifi-", true);
 
   V4PingHelper ping = V4PingHelper (wanInterface.GetAddress (0));
-  ApplicationContainer apps = ping.Install (networkNodes.Get(0));
+  ApplicationContainer apps = ping.Install (apNode);
   V4PingHelper ping2 = V4PingHelper (wanInterface2.GetAddress (0));
-  apps.Add(ping2.Install (networkNodes.Get(0)));
+  apps.Add(ping2.Install (apNode));
   V4PingHelper ping3 = V4PingHelper (wanInterface3.GetAddress (0));
-  apps.Add(ping3.Install (networkNodes.Get(0)));
+  apps.Add(ping3.Install (apNode));
   V4PingHelper ping4 = V4PingHelper (wanInterface4.GetAddress (0));
-  apps.Add(ping4.Install (networkNodes.Get(0)));
+  apps.Add(ping4.Install (apNode));
   apps.Start (Seconds (2.0));
 
   // finally, print the ping rtts.
