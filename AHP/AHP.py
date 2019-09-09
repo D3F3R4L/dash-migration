@@ -9,7 +9,7 @@ folder=sys.argv[1]
 simu=sys.argv[2]
 delays=[sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6]]
 ip=sys.argv[7]
-T=[sys.argv[8],sys.argv[9],sys.argv[10],sys.argv[11]]
+T={'1.0.0.1': float(sys.argv[8])/10000,'2.0.0.1': float(sys.argv[9])/20000,'3.0.0.1': float(sys.argv[10])/20000,'4.0.0.1': float(sys.argv[11])/50000}
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)
@@ -18,9 +18,20 @@ def main():
   os.chdir(folder)
   concatenarServers()
   ServersScores=ahp.Politica(Servers,ip)
+  A = list(T.keys())
+  B = list(ServersScores.keys())
+  commonKeys = set(A) - (set(A) - set(B))
+  for key in commonKeys:
+    if(T[key] >= 1 and key!='4.0.0.1'):
+      del ServersScores[key]
   ServersScores=list(ServersScores.items())
-  ServersScores.sort(key=operator.itemgetter(1))
-  #print(ServersScores)
+  ServersScores.sort(key=operator.itemgetter(1),reverse=True)
+  if len(ServersScores)>0:
+    x = list(sum(ServersScores, ()))
+    print(' '.join(x[0::2]))
+  else:
+    print(5)
+  '''
   if (ServersScores[2][1]>0.5):
     if (ServersScores[1][1]>0.5):
       if (ServersScores[0][1]>0.5):
@@ -31,6 +42,7 @@ def main():
       print(ServersScores[2][0])
   else:
     print(5)
+  
   #print(ServersScores[2][0],ServersScores[1][0],ServersScores[0][0])
   ServersScores.sort(key=operator.itemgetter(0))
   line=[str(ServersScores[0][1]),str(ServersScores[1][1]),str(ServersScores[2][1])]
@@ -39,7 +51,7 @@ def main():
   with open(file, 'a') as writeFile:
     writer = csv.writer(writeFile, dialect='myDialect')
     writer.writerow(line)
-  writeFile.close()
+  writeFile.close()'''
 
 def concatenarServers():
   StallValues=[0,0,0,0]

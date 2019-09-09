@@ -407,21 +407,21 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   for (uint i = 0; i < numberOfClients; i++)
   {
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    switch(ip)
+    switch(ip.at(0))
     {
-      case "1.0.0.1":
+      case '1':
         T1 = T1 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
         C1+=1;
         break;
-      case "2.0.0.1":
+      case '2':
         T2 = T2 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
         C2+=1;
         break;
-      case "3.0.0.1":
+      case '3':
         T3 = T3 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
         C3+=1;
         break;
-      case "4.0.0.1":
+      case '4':
         T4 = T4 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
         C4+=1;
         break;
@@ -442,14 +442,14 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     NS_LOG_UNCOND(Rebuffers[i]);
     NS_LOG_UNCOND(throughputs[i]);
     uint64_t Tc = getRepIndex(clientApps,clientHelper,clients.at (i).first);
-    double Tf1 = (T1 + Tc)/(C1+1);
-    double Tf2 = (T2 + Tc)/(C2+1);
-    double Tf3 = (T3 + Tc)/(C3+1);
-    double Tf4 = (T4 + Tc)/(C4+1);
+    double Tf1 = (T1 + Tc);
+    double Tf2 = (T2 + Tc);
+    double Tf3 = (T3 + Tc);
+    double Tf4 = (T4 + Tc);
     if (true) //Stalls[i]>=2 or Rebuffers[i]>=2
     {
       std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-      std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip+" "+Tf1+" "+Tf2+" "+Tf3+" "+Tf4;
+      std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip+" "+ToString(Tf1)+" "+ToString(Tf2)+" "+ToString(Tf3)+" "+ToString(Tf4);
       std::string bestSv = execute(filename.c_str());
       //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
       //system(filename.c_str());
@@ -464,18 +464,22 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
         {
           case '1':
             SvIp=server1Address;
+            T1=Tf1;
             aux=0;
             break;
           case '2':
             SvIp=server2Address;
+            T2=Tf2;
             aux=1;
             break;
           case '3':
             SvIp=server3Address;
+            T3=Tf3;
             aux=2;
             break;
           case '4':
             SvIp=cloudAddress;
+            T4=Tf4;
             aux=3;
             break;
           case '5':
@@ -512,6 +516,37 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
   getClientsOnServer(serverApp, serverHelper, servers);
   getClientsHandover(clientApps,clientHelper,clients);
   getClientsStallsRebuffers(clientApps,clientHelper,clients);
+  double T1=0;
+  double T2=0;
+  double T3=0;
+  double T4=0;
+  uint16_t C1=0;
+  uint16_t C2=0;
+  uint16_t C3=0;
+  uint16_t C4=0;
+  for (uint i = 0; i < numberOfClients; i++)
+  {
+    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
+    switch(ip.at(0))
+    {
+      case '1':
+        T1 = T1 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C1+=1;
+        break;
+      case '2':
+        T2 = T2 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C2+=1;
+        break;
+      case '3':
+        T3 = T3 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C3+=1;
+        break;
+      case '4':
+        T4 = T4 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
+        C4+=1;
+        break;
+    }
+  }
   /*
   for (uint k = 0; k < 4; k++)
   {
@@ -526,8 +561,13 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
     NS_LOG_UNCOND(Stalls[i]);
     NS_LOG_UNCOND(Rebuffers[i]);
     NS_LOG_UNCOND(throughputs[i]);
+    uint64_t Tc = getRepIndex(clientApps,clientHelper,clients.at (i).first);
+    double Tf1 = (T1 + Tc);
+    double Tf2 = (T2 + Tc);
+    double Tf3 = (T3 + Tc);
+    double Tf4 = (T4 + Tc);
     std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ToString(throughputs[i])+" "+ToString(Stalls[i])+" "+ToString(Rebuffers[i]);
+    std::string filename = "python3 src/dash-migration/Guloso-Aleatorio/exemplo.py " + dirTmp +" "+ToString(type)+" "+ ToString(SClients[0]+queue[0])+" "+ ToString(SClients[1]+queue[1])+" "+ ToString(SClients[2]+queue[2])+" "+ ToString(SClients[3])+" "+ip+" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ToString(throughputs[i])+" "+ToString(Stalls[i])+" "+ToString(Rebuffers[i])+" "+ToString(Tf1)+" "+ToString(Tf2)+" "+ToString(Tf3)+" "+ToString(Tf4);
     std::string bestSv = execute(filename.c_str());
     Address SvIp;
     NS_LOG_UNCOND(ip);
@@ -540,18 +580,22 @@ politica2(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, s
     {
       case '1':
         SvIp=server1Address;
+        T1=Tf1;
         aux=0;
         break;
       case '2':
         SvIp=server2Address;
+        T2=Tf2;
         aux=1;
         break;
       case '3':
         SvIp=server3Address;
+        T3=Tf3;
         aux=2;
         break;
       case '4':
         SvIp=cloudAddress;
+        T4=Tf4;
         aux=3;
         break;
     }

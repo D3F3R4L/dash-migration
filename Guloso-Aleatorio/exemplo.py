@@ -15,6 +15,7 @@ delays=[sys.argv[9],sys.argv[10],sys.argv[11],sys.argv[12]]
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 client=[float(sys.argv[13]),int(sys.argv[14]),float(sys.argv[15])]
+T=[float(sys.argv[16])/10000, float(sys.argv[17])/20000,float(sys.argv[18])/20000,float(sys.argv[19])/50000]
 #Tp=float(sys.argv[13])
 #St= int(sys.argv[14])
 #Rb= float(sys.argv[15])
@@ -80,7 +81,7 @@ def concatenarServers():
 
     for i in range(0,4):
       ServerIP = ServersIP[i]
-      Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i],int(float(clients[i]))]
+      Servers[ServerIP] = [delays[i],ThroughputValues[i],StallValues[i],RebufferValues[i],T[i]]#int(float(clients[i]))]
     return Servers
 
 if __name__=="__main__":
