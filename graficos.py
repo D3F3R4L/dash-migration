@@ -34,6 +34,7 @@ RebuffersTotals=[]
 bitSwitchtotals=[]
 bitSwitchUptotals=[]
 bitSwitchDowntotals=[]
+ClientsTotals=[]
 
 
 def main():
@@ -548,6 +549,7 @@ def qualityGraphs(numSegments):
   save = 'clientsPerServer.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
+  ClientsTotals.append([S1ClientsMean,S2ClientsMean,S3ClientsMean,S4ClientsMean])
   print('QualityGraphs Done')
 
 def divisor(vet1,vet2):
@@ -782,8 +784,8 @@ def graphtotals(numSegments):
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Clients Comparation done.')
-  print('Graphs Comparation done.')
-
+  
+  print('Stalls per Clients Comparation')
   ind = np.arange(0.0,1.5,0.5)
   width = 0.2
   fig, ax = plt.subplots()
@@ -801,6 +803,9 @@ def graphtotals(numSegments):
   save = 'StallsTotal.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
+  print('Stalls per Clients Done')
+
+  print('Rebuffers per Clients Comparation')
   ind = np.arange(0.0,1.5,0.5)
   width = 0.2  
   fig, ax = plt.subplots()
@@ -818,24 +823,83 @@ def graphtotals(numSegments):
   save = 'RebuffersTotal.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
+  print('Rebuffers per Clients Done')
 
+  print('Bitrate Switch Comparation')
   ind = np.arange(3)
   width = 0.2  
   fig, ax = plt.subplots()
   #aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
   #confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))/40]
   #rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  rects1 = ax.bar(ind - width, bitSwitchDowntotals,width,yerr=(1.96*(np.std(bitSwitchDowntotals)/np.sqrt(runs))),color='red',label='Downgrade')
-  rects2 = ax.bar(ind, bitSwitchUptotals, width,yerr=(1.96*(np.std(bitSwitchUptotals)/np.sqrt(runs))),color='purple',label='Upgrade')
-  rects3 = ax.bar(ind + width, bitSwitchtotals,width,yerr=(1.96*(np.std(bitSwitchtotals)/np.sqrt(runs))),color='grey',label='Total')
+  rects1 = ax.bar(ind - width, [bitSwitchDowntotals[0],bitSwitchUptotals[0],bitSwitchtotals[0]],width,yerr=(1.96*(np.std(bitSwitchDowntotals)/np.sqrt(runs))),label='Fog2Video')
+  rects2 = ax.bar(ind, [bitSwitchDowntotals[1],bitSwitchUptotals[1],bitSwitchtotals[1]], width,yerr=(1.96*(np.std(bitSwitchUptotals)/np.sqrt(runs))),label='Greedy')
+  rects3 = ax.bar(ind + width, [bitSwitchDowntotals[2],bitSwitchUptotals[2],bitSwitchtotals[2]],width,yerr=(1.96*(np.std(bitSwitchtotals)/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Average Bitrate Switch')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('Downgrade', 'Upgrade', 'Totals'))
   ax.legend()
   plt.grid(True,axis='y')
   save = 'BitrateSwitchs.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
+  print('Bitrate Switch Done')
+
+  print('Cost Comparation')
+  #print(ClientsTotals)
+  cost=[]
+  for i in range (0,3):
+    costSum=[]
+    for j in range (0,4):
+      aux=[]
+      for k in range (0,len(ClientsTotals[i][j])):
+        if j==0:
+          aux.append(ClientsTotals[i][j][k]*30)
+        elif j==3:
+          aux.append(ClientsTotals[i][j][k]*10)
+        else:
+          aux.append(ClientsTotals[i][j][k]*20)
+      costSum.append(aux)
+    cost.append(np.sum(costSum,0))
+  for i in range (0, len(cost)):
+    cost[i][-1]=cost[i][-2]
+  x=np.arange(0,numSegments)
+  fig,ax =plt.subplots()
+  p1,=plt.plot(x,cost[0],color='r',ls='--',lw=1, label='Fog2Video')
+  p2,=plt.plot(x,cost[1],color='g',ls='-.',lw=1, label='Greedy')
+  p3,=plt.plot(x,cost[2],color='b',ls=':',lw=1, label='Random')
+  plt.xlabel('Segments')
+  plt.ylabel('Cost')
+  plt.legend(fancybox=True, shadow=True)
+  plt.grid(True)
+  plt.savefig('Cost.png',bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Cost Comparation Done')
+
+  print('Bitrate Comparation')
+  bitrateMean=[]
+  for i in range (0,3):
+    aux=np.sum(qualityLevelTotals[4*i:((4*i)+3)],0)
+    aux[-1]=aux[-2]
+    print(aux)
+    bitrateMean.append([np.mean(aux[0:20]),np.mean(aux),np.mean(aux[-21:-1])])
+  ind = np.arange(3)
+  width = 0.2
+  fig, ax = plt.subplots()
+  rects1 = ax.bar(ind - width, bitrateMean[0], width,label='Fog2Video')
+  rects2 = ax.bar(ind, bitrateMean[1], width,label='Greedy')
+  rects3 = ax.bar(ind + width, bitrateMean[2], width,label='Random')
+  ax.set_ylabel('Bitrate Mean (Mbps)')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Initial Bitrate', 'Bitrate Mean', 'Final Bitrate'))
+  ax.legend()
+  plt.grid(True,axis='y')
+  save = 'BitrateMean.png'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Bitrate Comparation Done')
+
+  print('Graphs Comparation done.')
 
 def toBitrate(vet):
   for i in range(0,len(vet)):
