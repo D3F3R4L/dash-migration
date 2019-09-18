@@ -7,7 +7,7 @@ import operator
 import argparse
 
 parser = argparse.ArgumentParser(description='Script to make graphs for dash migration simulation')
-parser.add_argument('--segmentfile','-seg',default="segmentSizesBigBuck1A.txt", type=str,help='Name of segmentfile used.Default is segmentSizesBigBuck1A.txt')
+parser.add_argument('--segmentfile','-seg',default="segmentSizesBigBuck.txt", type=str,help='Name of segmentfile used.Default is segmentSizesBigBuck1A.txt')
 parser.add_argument('--adaptAlgo','-Adpt',default="festive", type=str,help='Name of adaptation algorithm used.Default is festive, possible values are: festive, panda, tobasco')
 parser.add_argument('--Clients','-c', type=int,help='Number of Clients in the simulation')
 #parser.add_argument('--Politica','-p', type=int,help='Politica used in the simulation')
@@ -35,7 +35,7 @@ bitSwitchtotals=[]
 bitSwitchUptotals=[]
 bitSwitchDowntotals=[]
 ClientsTotals=[]
-
+QualityMeanTotal=[]
 
 def main():
   print('Beginning')
@@ -334,6 +334,7 @@ def qualityGraphs(numSegments):
   bitSwitchMean=[]
   bitSwitchUpMean=[]
   bitSwitchDownMean=[]
+  QualityMean=[]
   while k<runs:
     simulation=k
     bitSwitch=0
@@ -398,6 +399,8 @@ def qualityGraphs(numSegments):
             else:
               bitSwitchDown+=1
       j+=1
+    QualityMean.append(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0)/40)
+    print(QualityMean)
     S1Quality=divisor(S1Quality,S1Clients)
     S2Quality=divisor(S2Quality,S2Clients)
     S3Quality=divisor(S3Quality,S3Clients)
@@ -414,6 +417,8 @@ def qualityGraphs(numSegments):
     bitSwitchUpMean.append(bitSwitchUp/40)
     bitSwitchDownMean.append(bitSwitchDown/40)
     k+=1
+  QualityMeanTotal.append(toBitrate(np.mean(QualityMean,0)))
+  print(QualityMeanTotal)
   worstClientQuality=toBitrate(worstClientQuality)
   bestClientQuality=toBitrate(bestClientQuality)
   S1QualityMean=np.mean(S1QualityMean,axis=0)
@@ -528,10 +533,11 @@ def qualityGraphs(numSegments):
   yellow_line = mlines.Line2D([], [], color='y',markersize=15,label='Tier-1')
   width = 0.6
   fig,ax =plt.subplots()
-  p1 = plt.bar(x, S1ClientsMean, width,color='r',align='edge')
-  p2 = plt.bar(x, S2ClientsMean, width,bottom=S1ClientsMean,color='g',align='edge')
-  p3 = plt.bar(x, S3ClientsMean, width,bottom=np.array(S1ClientsMean)+np.array(S2ClientsMean),color='b',align='edge')
-  p4 = plt.bar(x, S4ClientsMean, width,bottom=np.array(S1ClientsMean)+np.array(S2ClientsMean)+np.array(S3ClientsMean),color='y',align='edge')
+  new_x = [i for i in x]
+  p1 = plt.bar(new_x, S1ClientsMean, width=3,color='r',align='edge')
+  p2 = plt.bar(new_x, S2ClientsMean, width=3,bottom=S1ClientsMean,color='g',align='edge')
+  p3 = plt.bar(new_x, S3ClientsMean, width=3,bottom=np.array(S1ClientsMean)+np.array(S2ClientsMean),color='b',align='edge')
+  p4 = plt.bar(new_x, S4ClientsMean, width=3,bottom=np.array(S1ClientsMean)+np.array(S2ClientsMean)+np.array(S3ClientsMean),color='y',align='edge')
   xmajor_ticks = np.arange(0, (numSegments+1), 5)
   xminor_ticks = np.arange(0, (numSegments+1), 1)
   ymajor_ticks = np.arange(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1), 5)
@@ -542,10 +548,11 @@ def qualityGraphs(numSegments):
   ax.set_yticks(yminor_ticks, minor=True)
   ax.set_xlim(0, numSegments)
   ax.set_ylim(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1))
+  plt.xticks(rotation=45,fontsize=5)
   ax.grid(which='both')
   plt.xlabel('Segments')
   plt.ylabel('Clients per Server Mean')
-  plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(0.5, -0.05),loc='upper center', fontsize='small',ncol=4,fancybox=True, shadow=True)
+  plt.legend(handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(0.5, -0.05),loc='upper center', fontsize='small',ncol=4,fancybox=True, shadow=True)
   save = 'clientsPerServer.png'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -879,7 +886,8 @@ def graphtotals(numSegments):
   print('Bitrate Comparation')
   bitrateMean=[]
   for i in range (0,3):
-    aux=np.sum(qualityLevelTotals[4*i:((4*i)+3)],0)
+    #aux=np.sum(qualityLevelTotals[4*i:((4*i)+3)],0)
+    aux=QualityMeanTotal[i]
     aux[-1]=aux[-2]
     print(aux)
     bitrateMean.append([np.mean(aux[0:20]),np.mean(aux),np.mean(aux[-21:-1])])
