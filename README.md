@@ -24,7 +24,7 @@ Para executar o programa é necessário seguir o seguintes passos:
 3. Habilitar os testes e exemplos através do comando:
 
   ./waf configure --enable-tests --enable-examples
-  CXXFLAGS="-Wall" ./waf configure --enable-examples --enable-tests (Comando caso preise para desabilitar 'Warnings treated as errors')
+  CXXFLAGS="-Wall" ./waf configure --enable-examples --enable-tests (Comando caso precise para desabilitar 'Warnings treated as errors')
 
 4. Construir e linkar as dependências e configurações estabelicidas através do comando:
 
