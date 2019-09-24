@@ -107,9 +107,9 @@ def concatenarServers():
     if i==0 :
       ThroughputValues[i]=10
     elif i==1 or i==2:
-      ThroughputValues[i]=20
+      ThroughputValues[i]=11.2
     elif i==3:
-      ThroughputValues[i]=30
+      ThroughputValues[i]=15.6
     #  print('Delays: ',delays)
     #  print('ThroughputValues: ',ThroughputValues)
     #  print('Stalls: ',StallValues)

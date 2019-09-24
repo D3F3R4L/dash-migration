@@ -538,7 +538,7 @@ def qualityGraphs(numSegments):
   p2 = plt.bar(new_x, S2ClientsMean, width=3,bottom=S1ClientsMean,color='g',align='edge')
   p3 = plt.bar(new_x, S3ClientsMean, width=3,bottom=np.array(S1ClientsMean)+np.array(S2ClientsMean),color='b',align='edge')
   p4 = plt.bar(new_x, S4ClientsMean, width=3,bottom=np.array(S1ClientsMean)+np.array(S2ClientsMean)+np.array(S3ClientsMean),color='y',align='edge')
-  xmajor_ticks = np.arange(0, (numSegments+1), 15)
+  xmajor_ticks = np.arange(0, (numSegments+1), 30)
   #xminor_ticks = np.arange(0, (numSegments+1), 1)
   ymajor_ticks = np.arange(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1), 5)
   #yminor_ticks = np.arange(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1), 1)
@@ -843,9 +843,9 @@ def graphtotals(numSegments):
   rects1 = ax.bar(ind - width, [bitSwitchDowntotals[0],bitSwitchUptotals[0],bitSwitchtotals[0]],width,yerr=(1.96*(np.std(bitSwitchDowntotals)/np.sqrt(runs))),label='Fog2Video')
   rects2 = ax.bar(ind, [bitSwitchDowntotals[1],bitSwitchUptotals[1],bitSwitchtotals[1]], width,yerr=(1.96*(np.std(bitSwitchUptotals)/np.sqrt(runs))),label='Greedy')
   rects3 = ax.bar(ind + width, [bitSwitchDowntotals[2],bitSwitchUptotals[2],bitSwitchtotals[2]],width,yerr=(1.96*(np.std(bitSwitchtotals)/np.sqrt(runs))),label='Random')
-  ax.set_ylabel('Average Bitrate Switch')
+  ax.set_ylabel('Bitrate Switch')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Downgrade', 'Upgrade', 'Totals'))
+  ax.set_xticklabels(('Downgrade', 'Upgrade', 'Total'))
   ax.legend()
   plt.grid(True,axis='y')
   save = 'BitrateSwitchs.svg'
@@ -862,22 +862,24 @@ def graphtotals(numSegments):
       aux=[]
       for k in range (0,len(ClientsTotals[i][j])):
         if j==0:
-          aux.append(ClientsTotals[i][j][k]*30)
+          aux.append(ClientsTotals[i][j][k]*0.344)
         elif j==3:
-          aux.append(ClientsTotals[i][j][k]*10)
+          aux.append(ClientsTotals[i][j][k]*0.220)
         else:
-          aux.append(ClientsTotals[i][j][k]*20)
+          aux.append(ClientsTotals[i][j][k]*0.246)
       costSum.append(aux)
     cost.append(np.sum(costSum,0))
   for i in range (0, len(cost)):
     cost[i][-1]=cost[i][-2]
-  x=np.arange(0,numSegments)
+    cost[i]=np.delete(cost[i],0)
+  x=np.arange(1,numSegments)
   fig,ax =plt.subplots()
-  p1,=plt.plot(x,cost[0],color='r',ls='--',lw=1, label='Fog2Video')
-  p2,=plt.plot(x,cost[1],color='g',ls='-.',lw=1, label='Greedy')
-  p3,=plt.plot(x,cost[2],color='b',ls=':',lw=1, label='Random')
+  p1,=plt.plot(x,cost[0],color='b',ls='--',lw=1, label='Fog2Video')
+  p2,=plt.plot(x,cost[1],color='orange',ls='-.',lw=1, label='Greedy')
+  p3,=plt.plot(x,cost[2],color='green',ls=':',lw=1, label='Random')
   plt.xlabel('Segments')
-  plt.ylabel('Cost')
+  plt.ylabel('Monetary Cost (U$ 10⁻⁶)')
+  plt.xlim((1,300))
   plt.legend(fancybox=True, shadow=True)
   plt.grid(True)
   plt.savefig('Cost.svg',bbox_inches="tight",dpi=300)
