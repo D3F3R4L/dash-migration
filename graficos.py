@@ -5,6 +5,7 @@ import os
 import glob
 import operator
 import argparse
+import pandas as pd
 
 parser = argparse.ArgumentParser(description='Script to make graphs for dash migration simulation')
 parser.add_argument('--segmentfile','-seg',default="segmentSizesBigBuck.txt", type=str,help='Name of segmentfile used.Default is segmentSizesBigBuck1A.txt')
@@ -285,7 +286,7 @@ def throughtputServer():
   blue_line = mlines.Line2D([], [], color='b',ls=':',lw=3, label='Tier-2 EP-1')
   yellow_line = mlines.Line2D([], [], color='y',ls='-',lw=2, label='Tier-1')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
-  plt.grid(True)
+  plt.grid(True,alpha=0.4,linestyle='--')
   plt.title("Server Throughput")
   save = 'ServerThroughput.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
@@ -303,7 +304,7 @@ def throughtputServer():
   yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Exponential Moving Average of Server Throughput")
-  plt.grid(True)
+  plt.grid(True,alpha=0.4,linestyle='--')
   save = 'MMEServerThroughput.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -399,8 +400,9 @@ def qualityGraphs(numSegments):
             else:
               bitSwitchDown+=1
       j+=1
+    print(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0))
     QualityMean.append(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0)/40)
-    print(QualityMean)
+    #print(QualityMean)
     S1Quality=divisor(S1Quality,S1Clients)
     S2Quality=divisor(S2Quality,S2Clients)
     S3Quality=divisor(S3Quality,S3Clients)
@@ -457,7 +459,7 @@ def qualityGraphs(numSegments):
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   plt.title("Video Bitrate")
   plt.legend(title='Bitrate Average',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
-  plt.grid(True)
+  plt.grid(True,alpha=0.4,linestyle='--')
   ax.add_artist(l1)
   save = 'qualityLevel.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
@@ -485,7 +487,7 @@ def qualityGraphs(numSegments):
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
-  plt.grid(True)
+  plt.grid(True,alpha=0.4,linestyle='--')
   plt.xlabel('Segments')
   plt.ylabel('Video bitrate(Kbps)')
   plt.legend(title='Bitrate Average',handles=[red_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
@@ -518,7 +520,7 @@ def qualityGraphs(numSegments):
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
-  plt.grid(True)
+  plt.grid(True,alpha=0.4,linestyle='--')
   plt.xlabel('Segments')
   plt.ylabel('Video bitrate(Kbps)')
   plt.legend(title='Bitrate Average',handles=[red_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
@@ -550,7 +552,7 @@ def qualityGraphs(numSegments):
   ax.set_ylim(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1))
   plt.xticks(rotation=45,fontsize=10)
   plt.yticks(fontsize=10)
-  ax.grid(which='both')
+  ax.grid(which='both',alpha=0.4,linestyle='--')
   plt.xlabel('Segments',fontsize=14)
   plt.ylabel('Clients per Server Average', fontsize=14)
   plt.legend(handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(0.5, 1.3),loc='upper center', fontsize=14,ncol=4,fancybox=True, shadow=True)
@@ -677,7 +679,7 @@ def graphtotals(numSegments):
       name='Tier-1'
     if i==0:
       save= 'Tier-3'
-    plt.grid(True)
+    plt.grid(True,alpha=0.4,linestyle='--')
     plt.title(name)
     plt.savefig(name,bbox_inches="tight",dpi=300)
     plt.close()
@@ -698,7 +700,7 @@ def graphtotals(numSegments):
       name='EMA of Tier-1'
     if i==0:
       save= 'EMA of Tier-3'
-    plt.grid(True)
+    plt.grid(True,alpha=0.4,linestyle='--')
     plt.title(name)
     plt.savefig(name,bbox_inches="tight",dpi=300)
     plt.close()
@@ -725,7 +727,7 @@ def graphtotals(numSegments):
       save= 'Tier-3'
     plt.title(save)
     #plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
-    plt.grid(True)
+    plt.grid(True,alpha=0.4,linestyle='--')
     ax.add_artist(l1)
     plt.savefig(save,bbox_inches="tight",dpi=300)
     plt.close()
@@ -741,7 +743,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'StallsTotals.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -757,7 +759,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'RebuffersTotals.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -773,7 +775,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'BitrateTotals.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -787,7 +789,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Best Client', 'Worst Client'))
   ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'BestWorstTotals.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -807,7 +809,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
   #ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'StallsTotal.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -827,7 +829,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
   #ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'RebuffersTotal.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -847,7 +849,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Downgrade', 'Upgrade', 'Total'))
   ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'BitrateSwitchs.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -874,14 +876,19 @@ def graphtotals(numSegments):
     cost[i]=np.delete(cost[i],0)
   x=np.arange(1,numSegments)
   fig,ax =plt.subplots()
-  p1,=plt.plot(x,cost[0],color='b',ls='--',lw=1, label='Fog2Video')
-  p2,=plt.plot(x,cost[1],color='orange',ls='-.',lw=1, label='Greedy')
-  p3,=plt.plot(x,cost[2],color='green',ls=':',lw=1, label='Random')
+  ind = np.arange(0.0,1.5,0.5)
+  width = 0.2
+  #p1,=plt.plot(x,cost[0],color='b',ls='--',lw=1, label='Fog2Video')
+  #p2,=plt.plot(x,cost[1],color='orange',ls='-.',lw=1, label='Greedy')
+  #p3,=plt.plot(x,cost[2],color='green',ls=':',lw=1, label='Random')
+  rects1 = ax.bar(ind, [np.mean(cost[0]),np.mean(cost[1]),np.mean(cost[2])],width,color=(('tab:blue'),('tab:orange'),('tab:green')))
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
   plt.xlabel('Segments')
   plt.ylabel('Monetary Cost (U$ 10⁻⁶)')
-  plt.xlim((1,300))
+  #plt.xlim((1,300))
   plt.legend(fancybox=True, shadow=True)
-  plt.grid(True)
+  plt.grid(True,alpha=0.4,axis='y',linestyle='--')
   plt.savefig('Cost.svg',bbox_inches="tight",dpi=300)
   plt.close()
   print('Cost Comparation Done')
@@ -904,11 +911,67 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Initial Bitrate', 'Bitrate Average', 'Final Bitrate'))
   ax.legend()
-  plt.grid(True,axis='y')
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'BitrateMean.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Bitrate Comparation Done')
+
+  print('Bitrate Comparation Boxplot')
+  bitrates=[[],[],[]]
+  for i in range (0,3):
+    os.chdir(str(i))
+    files= '*playbackLog*'
+    throughputFiles = glob.glob(files)
+    throughputFiles.sort()
+    for j in range (0,len(throughputFiles)):
+      name = throughputFiles[j]
+      df = pd.read_csv(name, sep=';')
+      bitrate = df['Playback_Start']
+      bitrates[i].append(bitrate.mean(axis=0))
+    bitrates[i]=toBitrate(bitrates[i])
+    os.chdir('..')
+  fig, ax = plt.subplots()
+  pos = np.array(range(len(bitrates))) + 1
+  #medians = [np.mean(bitrates[0]), np.mean(bitrates[1]),np.mean(bitrates[2])]
+  #conf_intervals=[(1.96*(np.std(bitrates[0])/np.sqrt(33))),(1.96*(np.std(bitrates[1])/np.sqrt(33))),(1.96*(np.std(bitrates[2])/np.sqrt(33)))]
+  #conf_intervals = [(medians[0]+conf_intervals[0],medians[0]-conf_intervals[0]),(medians[1]+conf_intervals[1],medians[1]-conf_intervals[1]),(medians[2]+conf_intervals[2],medians[2]-conf_intervals[2])]
+  #print(conf_intervals)
+  #print(medians)
+  #bp = ax.boxplot(bitrates, positions=pos,notch=1,conf_intervals=conf_intervals,usermedians=medians) #bootstrap=5000,usermedians=medians,conf_intervals=conf_intervals
+  bp = ax.boxplot(bitrates, positions=pos,notch=1,bootstrap=1000,showmeans=True,meanline=True)
+  ax.set_xlabel('Mechanism')
+  ax.set_ylabel('Bitrate (Kbps)')
+  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
+  plt.setp(bp['whiskers'], color='k', linestyle='-')
+  plt.setp(bp['fliers'], markersize=3.0)
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
+  save = 'Boxplot.svg'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Bitrate Comparation Boxplot Done')
+  '''
+  bitrateMean=[]
+  for i in range (0,3):
+    aux=QualityMeanTotal[i]
+    aux[-1]=aux[-2]
+    print(aux)
+    bitrateMean.append([np.mean(aux[0:20]),np.mean(aux),np.mean(aux[-21:-1])])
+  ind = np.arange(3)
+  width = 0.2
+  fig, ax = plt.subplots()
+  rects1 = ax.bar(ind - width, bitrateMean[0], width,label='Fog2Video')
+  rects2 = ax.bar(ind, bitrateMean[1], width,label='Greedy')
+  rects3 = ax.bar(ind + width, bitrateMean[2], width,label='Random')
+  ax.set_ylabel('Bitrate Average (Kbps)')
+  ax.set_xticks(ind)
+  ax.set_xticklabels(('Initial Bitrate', 'Bitrate Average', 'Final Bitrate'))
+  ax.legend()
+  plt.grid(True,axis='y',alpha=0.4,linestyle='--')
+  save = 'BitrateMean.svg'
+  plt.savefig(save,bbox_inches="tight",dpi=300)
+  plt.close()
+  print('Bitrate Comparation Boxplot Done')'''
 
   print('Graphs Comparation done.')
 
