@@ -733,7 +733,7 @@ EnbNodes.Create (numberOfEnbNodes);
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp1;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp2;
   std::vector <std::pair <Ptr<Node>, std::string> > clients_temp3;
-  
+  /*
   for (uint i = 0; i < numberOfUeNodes; i++)
     {
       if(i<numberOfUeNodes/4)

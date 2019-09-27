@@ -633,7 +633,7 @@ main (int argc, char *argv[])
   uint32_t numberOfServers = 5;
   uint16_t numberOfHops = 4;
   std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck.txt";
+  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   bool shortGuardInterval = true;
   int seedValue = 0;
   uint16_t pol=0;
@@ -713,24 +713,24 @@ main (int argc, char *argv[])
 
   /* Set up WAN link between server node and access point*/
   PointToPointHelper p2p;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("100Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1000Mb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("1ms"));
   NetDeviceContainer wanIpDevicesHops1;
   wanIpDevicesHops1 = p2p.Install (hop1, apNode);
 
   NetDeviceContainer wanIpDevicesHops;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("100Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1000Mb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("24ms"));
   wanIpDevicesHops.Add(p2p.Install (hop2, hop1));
 
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("100Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1000Mb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("46ms"));
   wanIpDevicesHops.Add(p2p.Install (hop3, hop2));
 
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("100Mb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1000Mb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2p.SetChannelAttribute ("Delay", StringValue ("130ms"));
   wanIpDevicesHops.Add(p2p.Install (hop4, hop3));

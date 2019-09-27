@@ -9,7 +9,7 @@ folder=sys.argv[1]
 simu=sys.argv[2]
 delays=[sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6]]
 ip=sys.argv[7]
-T={'1.0.0.1': float(sys.argv[8])/10000,'2.0.0.1': float(sys.argv[9])/20000,'3.0.0.1': float(sys.argv[10])/20000,'4.0.0.1': float(sys.argv[11])/50000}
+T={'1.0.0.1': float(sys.argv[8])/10000,'2.0.0.1': float(sys.argv[9])/20000,'3.0.0.1': float(sys.argv[10])/20000,'4.0.0.1': float(sys.argv[11])/100000}
 Servers={}
 ServersIP=["1.0.0.1","2.0.0.1","3.0.0.1","4.0.0.1"]
 ahp = AHP (log=True)

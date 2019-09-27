@@ -54,7 +54,7 @@ def main():
     if i.isdigit():
       aux.append(i)
   folders=aux
-  print(folders)
+  #print(folders)
   for i in folders:
     #folder='dash-log-files/{algo}/{num}/{pol}'.format(algo=adaptAlgo,num=numberOfClients,pol=i)
     print('------Politica ',i,'------')
@@ -77,20 +77,20 @@ def main():
 def bufferUnderrunGraphs():
   files= '*sim{simu}_*bufferUnderrunLog*'.format(simu=simulation)
   bufferUnderrunFiles = glob.glob(files)
-  print(bufferUnderrunFiles)
+  #print(bufferUnderrunFiles)
   S1timeTotal=[]
   S2timeTotal=[]
   S3timeTotal=[]
   j=0
   while(j<len(bufferUnderrunFiles)):
-    print(j)
+    #print(j)
     name = bufferUnderrunFiles[j]
     file = open(name,"r")
     next(file)
     Buffer_Underrun_Total_Time=[]
     for line in file:
       fields = line.split(";")
-      print(fields)
+      #print(fields)
       if(j!=0):
         timeTotal.append(float(fields[3])+timeTotal[len(timeTotal)-1])
       else:
@@ -243,7 +243,7 @@ def throughtputServer():
     files= '*throughputServer*sim{simu}_*'.format(simu=simulation)
     throughputFiles = glob.glob(files)
     throughputFiles.sort()
-    print(throughputFiles)
+    #print(throughputFiles)
     j=0
     while(j<len(throughputFiles)):
       name = throughputFiles[j]
@@ -400,7 +400,7 @@ def qualityGraphs(numSegments):
             else:
               bitSwitchDown+=1
       j+=1
-    print(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0))
+    #print(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0))
     QualityMean.append(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0)/40)
     #print(QualityMean)
     S1Quality=divisor(S1Quality,S1Clients)
@@ -420,7 +420,7 @@ def qualityGraphs(numSegments):
     bitSwitchDownMean.append(bitSwitchDown/40)
     k+=1
   QualityMeanTotal.append(toBitrate(np.mean(QualityMean,0)))
-  print(QualityMeanTotal)
+  #print(QualityMeanTotal)
   worstClientQuality=toBitrate(worstClientQuality)
   bestClientQuality=toBitrate(bestClientQuality)
   S1QualityMean=np.mean(S1QualityMean,axis=0)
@@ -481,7 +481,7 @@ def qualityGraphs(numSegments):
     else:
       plt.plot([x1, x2], [y1, y2], 'y')
     i+=1
-  print(bestClientQuality)
+  #print(bestClientQuality)
   Means.append(int(np.mean(bestClientQuality)))
   red_line = mlines.Line2D([], [], color='black',markersize=15, label='{mean} Kbps'.format(mean=Means[0]))
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
@@ -789,6 +789,7 @@ def graphtotals(numSegments):
   ax.set_xticks(ind)
   ax.set_xticklabels(('Best Client', 'Worst Client'))
   ax.legend()
+  plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'BestWorstTotals.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
@@ -881,7 +882,7 @@ def graphtotals(numSegments):
   #p1,=plt.plot(x,cost[0],color='b',ls='--',lw=1, label='Fog2Video')
   #p2,=plt.plot(x,cost[1],color='orange',ls='-.',lw=1, label='Greedy')
   #p3,=plt.plot(x,cost[2],color='green',ls=':',lw=1, label='Random')
-  rects1 = ax.bar(ind, [np.mean(cost[0]),np.mean(cost[1]),np.mean(cost[2])],width,color=(('tab:blue'),('tab:orange'),('tab:green')))
+  rects1 = ax.bar(ind, [np.mean(cost[0]),np.mean(cost[1]),np.mean(cost[2])],width,yerr=[(1.96*(np.std((cost[0]))/np.sqrt(runs))),(1.96*(np.std((cost[1]))/np.sqrt(runs))),(1.96*(np.std((cost[2]))/np.sqrt(runs)))],color=(('tab:blue'),('tab:orange'),('tab:green')))
   ax.set_xticks(ind)
   ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
   plt.xlabel('Segments')
@@ -895,12 +896,30 @@ def graphtotals(numSegments):
 
   print('Bitrate Comparation')
   bitrateMean=[]
-  for i in range (0,3):
+  '''for i in range (0,3):
     #aux=np.sum(qualityLevelTotals[4*i:((4*i)+3)],0)
     aux=QualityMeanTotal[i]
     aux[-1]=aux[-2]
     print(aux)
-    bitrateMean.append([np.mean(aux[0:20]),np.mean(aux),np.mean(aux[-21:-1])])
+    bitrateMean.append([np.mean(aux[0:20]),np.mean(aux),np.mean(aux[-21:-1])])'''
+  for i in range (0,3):
+    os.chdir(str(i))
+    files= '*playbackLog*'
+    throughputFiles = glob.glob(files)
+    throughputFiles.sort()
+    begin=[]
+    mean=[]
+    final=[]
+    for j in range (0,len(throughputFiles)):
+      name = throughputFiles[j]
+      df = pd.read_csv(name, sep=';',index_col=False)
+      bitrate = df['Quality_Level']
+      bitrate = toBitrate(bitrate)
+      begin.append(np.mean(bitrate[0:20]))
+      mean.append(bitrate.mean(axis=0))
+      final.append(np.mean(bitrate[-21:-1]))
+    bitrateMean.append([np.mean(begin),np.mean(mean),np.mean(final)])
+    os.chdir('..')
   ind = np.arange(3)
   width = 0.2
   fig, ax = plt.subplots()
@@ -912,6 +931,7 @@ def graphtotals(numSegments):
   ax.set_xticklabels(('Initial Bitrate', 'Bitrate Average', 'Final Bitrate'))
   ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
+  plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   save = 'BitrateMean.svg'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -926,8 +946,8 @@ def graphtotals(numSegments):
     throughputFiles.sort()
     for j in range (0,len(throughputFiles)):
       name = throughputFiles[j]
-      df = pd.read_csv(name, sep=';')
-      bitrate = df['Playback_Start']
+      df = pd.read_csv(name, sep=';',index_col=False)
+      bitrate = df['Quality_Level']
       bitrates[i].append(bitrate.mean(axis=0))
     bitrates[i]=toBitrate(bitrates[i])
     os.chdir('..')
