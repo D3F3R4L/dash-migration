@@ -25,6 +25,7 @@
 #include "ns3/flow-monitor-module.h"
 #include "ns3/tcp-stream-helper.h"
 #include "ns3/tcp-stream-interface.h"
+#include "ns3/netanim-module.h"
 #include <iostream>
 #include <stdlib.h>
 #include <sstream>
@@ -352,7 +353,7 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
   {
     Simulator::Stop();
   }
-  Simulator::Schedule(Seconds(1),&getClientsOnServer,serverApp, serverHelper, servers);
+  //Simulator::Schedule(Seconds(1),&getClientsOnServer,serverApp, serverHelper, servers);
 }
 
 void
@@ -403,118 +404,28 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
   getClientsOnServer(serverApp, serverHelper, servers);
   getClientsHandover(clientApps,clientHelper,clients);
   getClientsStallsRebuffers(clientApps,clientHelper,clients);
-  double T1=0;
-  double T2=0;
-  double T3=0;
-  double T4=0;
-  uint16_t C1=0;
-  uint16_t C2=0;
-  uint16_t C3=0;
-  uint16_t C4=0;
-  for (uint i = 0; i < numberOfUeNodes; i++)
+  Address SvIp;
+  if (type=="SMigracao")
   {
-    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-    switch(ip.at(0))
+    if (Simulator::Now()<=Seconds(6))
     {
-      case '1':
-        T1 = T1 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
-        C1+=1;
-        break;
-      case '2':
-        T2 = T2 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
-        C2+=1;
-        break;
-      case '3':
-        T3 = T3 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
-        C3+=1;
-        break;
-      case '4':
-        T4 = T4 + getRepIndex(clientApps,clientHelper,clients.at (i).first);
-        C4+=1;
-        break;
+      NS_LOG_UNCOND("SMigracao");
+      SvIp=server2Address;
+      ServerHandover(clientApps, clientHelper, SvIp, clients,0);
     }
   }
-  /*
-  for (uint k = 0; k < 4; k++)
+  if (type=="AMigracao")
   {
-    int dif=SClients[k]-SBClients[k];
-    if (dif>0)
+    if (Simulator::Now()<=Seconds(6))
     {
-      queue[k]=queue[k]-dif;
-    }
-  }*/
-  for (uint i = 0; i < numberOfUeNodes; i++)
-  {
-    NS_LOG_UNCOND(Stalls[i]);
-    NS_LOG_UNCOND(Rebuffers[i]);
-    NS_LOG_UNCOND(throughputs[i]);
-    uint64_t Tc = getRepIndex(clientApps,clientHelper,clients.at (i).first);
-    double Tf1 = (T1 + Tc);
-    double Tf2 = (T2 + Tc);
-    double Tf3 = (T3 + Tc);
-    double Tf4 = (T4 + Tc);
-    if (true) //Stalls[i]>=2 or Rebuffers[i]>=2
-    {
-      std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (i).first);
-      std::string filename = "python3 src/dash-migration/AHP/AHP.py " + dirTmp +" "+ToString(simulationId)+" "+delays[0]+" "+delays[1]+" "+delays[2]+" "+delays[3]+" "+ip+" "+ToString(Tf1)+" "+ToString(Tf2)+" "+ToString(Tf3)+" "+ToString(Tf4);
-      std::string bestSv = execute(filename.c_str());
-      //std::string bestSv="1.0.0.1 2.0.0.1 3.0.0.1";
-      //system(filename.c_str());
-      std::vector <std::string> BestServers;
-      BestServers = split(bestSv.c_str(), " ");
-      bool jump=false;
-      for (uint j = 0; j < BestServers.size(); j++)
-      {
-        Address SvIp;
-        uint16_t aux;
-        switch(BestServers[j].at(0))
-        {
-          case '1':
-            SvIp=server1Address;
-            T1=Tf1;
-            aux=0;
-            break;
-          case '2':
-            SvIp=server2Address;
-            T2=Tf2;
-            aux=1;
-            break;
-          case '3':
-            SvIp=server3Address;
-            T3=Tf3;
-            aux=2;
-            break;
-          case '4':
-            SvIp=cloudAddress;
-            T4=Tf4;
-            aux=3;
-            break;
-          case '5':
-            jump=true;
-            break;
-        }
-        if (ip==BestServers[j] or jump)
-        {
-          j=BestServers.size();
-        }
-        else
-        {
-          if(SClients[aux]+queue[aux]<MaxClientsSV)
-          {
-            std::cout << SvIp << "ServerId: \t" << i << " Cliente" << SClients[aux]<< std::endl;
-            queue[aux]=queue[aux]+1;
-            ServerHandover(clientApps, clientHelper, SvIp, clients,i);
-            j=BestServers.size();
-          }
-        }
-      }
+      SvIp=server3Address;
+      ServerHandover(clientApps, clientHelper, SvIp, clients,0);
+      SvIp=server2Address;
+      Simulator::Schedule(Seconds(2),&ServerHandover,clientApps, clientHelper, SvIp, clients,0);
+      NS_LOG_UNCOND("AMigracao");
     }
   }
-  for (uint l = 0; l < 4; l++)
-  {
-    SBClients[l]=SClients[l];
-  }
-  Simulator::Schedule(Seconds(2),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 void
@@ -755,17 +666,17 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   simulationId = 1;
-  numberOfUeNodes = 4;
+  numberOfUeNodes = 1;
   uint16_t numberOfEnbNodes = 1;
   uint32_t numberOfServers = 4;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
   //bool shortGuardInterval = true;
   int seedValue = 1;
-  uint16_t pol=3;
+  uint16_t pol=1;
 
   //lastRx=[numberOfUeNodes];
-  LogComponentEnable("dash-migrationExample", LOG_LEVEL_ALL);
+  //LogComponentEnable("dash-migrationExample", LOG_LEVEL_ALL);
 
   CommandLine cmd;
   cmd.Usage ("Simulation of streaming with DASH.\n");
@@ -823,17 +734,104 @@ main (int argc, char *argv[])
   Ptr<Node> pgw = epcHelper->GetPgwNode ();
   
    // Create a single RemoteHost
-  NodeContainer remoteHostContainer;
-  remoteHostContainer.Create (numberOfServers);
-  Ptr<Node> remoteHost = remoteHostContainer.Get (0);
-  Ptr<Node> remoteHost2 = remoteHostContainer.Get (1);
-  Ptr<Node> remoteHost3= remoteHostContainer.Get (2);
-  Ptr<Node> remoteHost4= remoteHostContainer.Get (3);
+  NodeContainer remoteHosts;
+  remoteHosts.Create (numberOfServers);
+  Ptr<Node> remoteHost = remoteHosts.Get (0);
+  Ptr<Node> remoteHost2 = remoteHosts.Get (1);
+  Ptr<Node> remoteHost3= remoteHosts.Get (2);
+  Ptr<Node> remoteHost4= remoteHosts.Get (3);
   InternetStackHelper internet;
-  internet.Install (remoteHostContainer);
+  internet.Install (remoteHosts);
+
+  Ptr<Node> router = CreateObject<Node> ();
+  internet.Install (router);
+
+// Create p2p links
+  PointToPointHelper p2ph;
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
+  p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  p2ph.SetChannelAttribute ("Delay", TimeValue(MilliSeconds(0)));
+
+  //Install link between PGW and Router
+  NetDeviceContainer pgwRouterDevices = p2ph.Install (pgw, router);
+
+  NetDeviceContainer remoteHostsDevices;
+  NetDeviceContainer routerDevices;
+  for (uint16_t u = 0; u < numberOfServers; u++)
+    {
+      if (u==1)
+      {
+        p2ph.SetChannelAttribute("Delay", TimeValue(MilliSeconds(100)));
+      }
+      if (u==2)
+      {
+        p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Kb/s")));
+      }
+      NetDeviceContainer c = p2ph.Install (router, remoteHosts.Get (u));
+      routerDevices.Add (c.Get(0));
+      remoteHostsDevices.Add (c.Get(1));
+    }
 
 
-  /* Set up WAN link between server node and access point*/
+  // Assigning Ipv4 Addresses
+  Ipv4InterfaceContainer routerInterfaces;
+  Ipv4InterfaceContainer remoteHostsInterfaces;
+
+  Ipv4AddressHelper pgwRouterIpv4 ("192.168.0.0", "255.255.0.0");
+  Ipv4InterfaceContainer pgwRouterInterfaces = pgwRouterIpv4.Assign(pgwRouterDevices);
+
+  Ipv4AddressHelper internetIpv4 ("1.0.0.0", "255.0.0.0");
+  for (uint16_t r = 0; r < remoteHosts.GetN(); ++r)
+    {
+      NetDeviceContainer ndc;
+      ndc.Add (remoteHostsDevices.Get (r));
+      ndc.Add (routerDevices.Get (r));
+      //ndc.Add (pgwDevices.Get (r));
+      Ipv4InterfaceContainer ifc = internetIpv4.Assign (ndc);
+      remoteHostsInterfaces.Add (ifc.Get (0));
+      routerInterfaces.Add (ifc.Get (1));
+    }
+
+
+  Ipv4StaticRoutingHelper ipv4RoutingHelper;
+
+  uint16_t j = 2;
+  for (uint16_t u = 0; u < numberOfServers; u++)
+    {
+      std::stringstream ss;
+      ss << u + j;
+      Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHosts.Get (u)->GetObject<Ipv4> ());
+      remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"),
+                                                  Ipv4Mask ("255.0.0.0"),
+                                                  Ipv4Address(("1.0.0." + ss.str()).c_str()), 1);
+      j++;
+    }
+
+
+  Ptr<Ipv4StaticRouting> routerStaticRouting = ipv4RoutingHelper.GetStaticRouting (router->GetObject<Ipv4> ());
+  routerStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"),
+                                          Ipv4Mask ("255.0.0.0"),
+                                          Ipv4Address("192.168.0.1"), 1);
+
+  j = 1;
+  for (uint16_t u = 0; u < numberOfServers; u++)
+    {
+      std::stringstream ss;
+      ss << u + j;
+      routerStaticRouting->AddHostRouteTo (Ipv4Address (("1.0.0." + ss.str()).c_str()), j+1);
+      j++;
+    }
+  Ptr<Ipv4StaticRouting> pgwStaticRouting = ipv4RoutingHelper.GetStaticRouting (pgw->GetObject<Ipv4> ());
+  pgwStaticRouting->AddNetworkRouteTo (Ipv4Address ("1.0.0.0"),
+                                       Ipv4Mask ("255.0.0.0"),
+                                       Ipv4Address("192.168.0.2"), 2);
+  
+  server1Address = Address(remoteHostsInterfaces.GetAddress (0));
+  server2Address = Address(remoteHostsInterfaces.GetAddress (1));
+  server3Address = Address(remoteHostsInterfaces.GetAddress (2));
+  cloudAddress = Address(remoteHostsInterfaces.GetAddress (3));
+
+  /* Set up WAN link between server node and access point*//*
   PointToPointHelper p2p;
   p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
@@ -847,9 +845,9 @@ main (int argc, char *argv[])
   NetDeviceContainer wanIpDevices2;
   wanIpDevices2 = p2p.Install (remoteHost2, remoteHost);
 
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("1Gb/s")); // This must not be more than the maximum throughput in 802.11n
+  p2p.SetDeviceAttribute ("DataRate", StringValue ("1Kb/s")); // This must not be more than the maximum throughput in 802.11n
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2p.SetChannelAttribute ("Delay", StringValue ("11ms"));
+  p2p.SetChannelAttribute ("Delay", StringValue ("1ms"));
   NetDeviceContainer wanIpDevices3;
   wanIpDevices3 = p2p.Install (remoteHost3, remoteHost2);
 
@@ -860,13 +858,13 @@ main (int argc, char *argv[])
   wanIpDevices4 = p2p.Install (remoteHost4, remoteHost3);
 
 
-  /* Assign IP addresses */
+  /* Assign IP addresses *//*
   Ipv4AddressHelper address;
   Ipv4AddressHelper address2;
   Ipv4AddressHelper address3;
   Ipv4AddressHelper address4;
 
-  /* IPs for WAN */
+  /* IPs for WAN *//*
   address.SetBase ("1.0.0.0", "255.255.255.0");
   address2.SetBase ("2.0.0.0", "255.255.255.0");
   address3.SetBase ("3.0.0.0", "255.255.255.0");
@@ -985,10 +983,10 @@ EnbNodes.Create (numberOfEnbNodes);
   MobilityHelper remoteHostMobility;
   remoteHostMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   remoteHostMobility.Install(pgw);
-  remoteHostMobility.Install(remoteHostContainer);
+  remoteHostMobility.Install(remoteHosts);
 
     // User Devices mobility
-  Ns2MobilityHelper ue_mobil = Ns2MobilityHelper("mobil/mobility_5am_7am.tcl");
+  Ns2MobilityHelper ue_mobil = Ns2MobilityHelper("mobil/5961.tcl");
   MobilityHelper ueMobility;
   MobilityHelper enbMobility;
   ue_mobil.Install(UeNodes.Begin(), UeNodes.End());
@@ -1017,15 +1015,15 @@ EnbNodes.Create (numberOfEnbNodes);
 
   uint16_t port= 9;
 
-  V4PingHelper ping = V4PingHelper (wanInterface.GetAddress (0));
-  ApplicationContainer apps = ping.Install (EnbNodes.Get(0));
-  V4PingHelper ping2 = V4PingHelper (wanInterface2.GetAddress (0));
-  apps.Add(ping2.Install (EnbNodes.Get(0)));
-  V4PingHelper ping3 = V4PingHelper (wanInterface3.GetAddress (0));
-  apps.Add(ping3.Install (EnbNodes.Get(0)));
-  V4PingHelper ping4 = V4PingHelper (wanInterface4.GetAddress (0));
-  apps.Add(ping4.Install (EnbNodes.Get(0)));
-  apps.Start (Seconds (2.0));
+  //V4PingHelper ping = V4PingHelper (wanInterface.GetAddress (0));
+  //ApplicationContainer apps = ping.Install (pgw);
+  //V4PingHelper ping2 = V4PingHelper (wanInterface2.GetAddress (0));
+  //apps.Add(ping2.Install (pgw));
+  //V4PingHelper ping3 = V4PingHelper (wanInterface3.GetAddress (0));
+  //apps.Add(ping3.Install (pgw));
+  //V4PingHelper ping4 = V4PingHelper (wanInterface4.GetAddress (0));
+  //apps.Add(ping4.Install (pgw));
+  //apps.Start (Seconds (2.0));
 
   // finally, print the ping rtts.
   Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::V4Ping/Rtt",MakeCallback (&PingRtt));
@@ -1170,23 +1168,34 @@ EnbNodes.Create (numberOfEnbNodes);
   Rebuffers.reserve(numberOfUeNodes);
   Rebuffers.resize(numberOfUeNodes);
 
+   AnimationInterface anim("pandora_anim.xml");
+    for (uint32_t i = 0; i < EnbNodes.GetN(); ++i) {
+        anim.UpdateNodeDescription(EnbNodes.Get(i), "eNb--------------");
+        anim.UpdateNodeColor(EnbNodes.Get(i), 0, 255, 0);
+    }
+    for (uint32_t i = 0; i < UeNodes.GetN(); ++i) {
+        anim.UpdateNodeDescription(UeNodes.Get(i), "UE");
+        anim.UpdateNodeColor(UeNodes.Get(i), 255, 0, 0);
+    }
+
   if (pol==0)
   {
+    type="PMigracao";
     Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
   }
   else
   {
     if (pol==1)
     {
-      type="guloso";
-      Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+      type="SMigracao";
+      Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
     }
     else
     {
       if (pol==2)
       {
-      type="aleatorio";
-      Simulator::Schedule(Seconds(5.001),&politica2,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+      type="AMigracao";
+      Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
       }
     }
   }
@@ -1203,7 +1212,7 @@ EnbNodes.Create (numberOfEnbNodes);
 
   NS_LOG_INFO ("Run Simulation.");
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfUeNodes);
-  Simulator::Schedule(Seconds(5),&getClientsOnServer,serverApp, serverHelper, servers);
+  //Simulator::Schedule(Seconds(5),&getClientsOnServer,serverApp, serverHelper, servers);
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients);
