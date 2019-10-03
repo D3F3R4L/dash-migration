@@ -35,6 +35,9 @@ RebuffersTotals=[]
 bitSwitchtotals=[]
 bitSwitchUptotals=[]
 bitSwitchDowntotals=[]
+bitSwitchtotalsConfInt=[]
+bitSwitchUptotalsConfInt=[]
+bitSwitchDowntotalsConfInt=[]
 ClientsTotals=[]
 QualityMeanTotal=[]
 
@@ -104,7 +107,7 @@ def bufferUnderrunGraphs():
   plt.xlabel('Buffer Underrun')
   plt.ylabel('Total Time')
   plt.title("Buffer Underrun Total Duration Time")
-  save = 'BufferUnderrunTotalTime.svg'
+  save = 'BufferUnderrunTotalTime.pdf'
   plt.savefig(save)
   plt.close()
 
@@ -152,14 +155,14 @@ def bufferUnderrunGraphs():
   plt.xlabel('Segundos')
   plt.ylabel('Estouros')
   plt.title("Numero de estouros de buffer")
-  save = 'sim{simu}_cl{iter}_NumbersOfBufferUnderrun.svg'.format(simu=simulation, iter=j)
+  save = 'sim{simu}_cl{iter}_NumbersOfBufferUnderrun.pdf'.format(simu=simulation, iter=j)
   plt.savefig(save)
   plt.close()
   plt.plot(Buffer_Underrun_Started_At,Buffer_Underrun_Total_Time , label='linear')
   plt.xlabel('Segundos')
   plt.ylabel('Tempo Total')
   plt.title("Buffer Underrun Total Duration Time")
-  save = 'sim{simu}_cl{iter}_BufferUnderrunDurationTime.svg'.format(simu=simulation, iter=j)
+  save = 'sim{simu}_cl{iter}_BufferUnderrunDurationTime.pdf'.format(simu=simulation, iter=j)
   plt.savefig(save)
   plt.close()
 '''
@@ -225,7 +228,7 @@ def throughputGraphs(numSegments):
   yellow_line = mlines.Line2D([], [], color='y',markersize=15, label='Tier-1')
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Server Throughput")
-  save = 'ServerThroughput.svg'
+  save = 'ServerThroughput.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 
@@ -288,7 +291,7 @@ def throughtputServer():
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.grid(True,alpha=0.4,linestyle='--')
   plt.title("Server Throughput")
-  save = 'ServerThroughput.svg'
+  save = 'ServerThroughput.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 
@@ -305,7 +308,7 @@ def throughtputServer():
   plt.legend(title='Enforcement Point',handles=[red_line,green_line,blue_line,yellow_line])
   plt.title("Exponential Moving Average of Server Throughput")
   plt.grid(True,alpha=0.4,linestyle='--')
-  save = 'MMEServerThroughput.svg'
+  save = 'MMEServerThroughput.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('ThroughtputServer Done')
@@ -434,6 +437,9 @@ def qualityGraphs(numSegments):
   bitSwitchtotals.append(np.mean(bitSwitchMean))
   bitSwitchUptotals.append(np.mean(bitSwitchUpMean))
   bitSwitchDowntotals.append(np.mean(bitSwitchDownMean))
+  bitSwitchtotalsConfInt.append((1.96*(np.std(bitSwitchMean)/np.sqrt(runs))))
+  bitSwitchUptotalsConfInt.append((1.96*(np.std(bitSwitchUpMean)/np.sqrt(runs))))
+  bitSwitchDowntotalsConfInt.append((1.96*(np.std(bitSwitchDownMean)/np.sqrt(runs))))
   qualityLevelTotals.append(S1QualityMean)
   qualityLevelTotals.append(S2QualityMean)
   qualityLevelTotals.append(S3QualityMean)
@@ -444,7 +450,7 @@ def qualityGraphs(numSegments):
   p2,=plt.plot(x,S2QualityMean,color='g',markersize=15, label='Tier-2 EP-2')
   p3,=plt.plot(x,S3QualityMean,color='b',markersize=15, label='Tier-2 EP-1')
   p4,=plt.plot(x,S4QualityMean,color='y',markersize=15, label='Tier-1')
-  plt.xlabel('Segments')
+  plt.xlabel('Chunks')
   plt.ylabel('Video bitrate(Kbps)')
   MeansSV.append(int(np.mean(S1QualityMean)))
   MeansSV.append(int(np.mean(S2QualityMean)))
@@ -461,7 +467,7 @@ def qualityGraphs(numSegments):
   plt.legend(title='Bitrate Average',handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
   plt.grid(True,alpha=0.4,linestyle='--')
   ax.add_artist(l1)
-  save = 'qualityLevel.svg'
+  save = 'qualityLevel.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   
@@ -488,11 +494,11 @@ def qualityGraphs(numSegments):
   l1=plt.legend(title='Enforcement Point',handles=[p1,p2,p3,p4],bbox_to_anchor=(1.04,1), loc="upper left",fancybox=True, shadow=True)
   ax.add_artist(l1)
   plt.grid(True,alpha=0.4,linestyle='--')
-  plt.xlabel('Segments')
+  plt.xlabel('Chunks')
   plt.ylabel('Video bitrate(Kbps)')
   plt.legend(title='Bitrate Average',handles=[red_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
   plt.title("Video Bitrate Best Client")
-  save = 'qualityLevelBestClient.svg'
+  save = 'qualityLevelBestClient.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 
@@ -525,7 +531,7 @@ def qualityGraphs(numSegments):
   plt.ylabel('Video bitrate(Kbps)')
   plt.legend(title='Bitrate Average',handles=[red_line],bbox_to_anchor=(1.04,0.5), loc="center left",fancybox=True, shadow=True)
   plt.title("Video Bitrate Worst Client")
-  save = 'qualityLevelWorstClient.svg'
+  save = 'qualityLevelWorstClient.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
 
@@ -550,13 +556,13 @@ def qualityGraphs(numSegments):
   #ax.set_yticks(yminor_ticks, minor=True)
   ax.set_xlim(0, numSegments)
   ax.set_ylim(0, (S1ClientsMean[0]+S2ClientsMean[0]+S3ClientsMean[0]+S4ClientsMean[0]+1))
-  plt.xticks(rotation=45,fontsize=10)
-  plt.yticks(fontsize=10)
+  #plt.xticks(rotation=45,fontsize=10)
+  #plt.yticks(fontsize=10)
   ax.grid(which='both',alpha=0.4,linestyle='--')
-  plt.xlabel('Segments',fontsize=14)
+  plt.xlabel('Chunks',fontsize=14)
   plt.ylabel('Clients per Server Average', fontsize=14)
   plt.legend(handles=[red_line,green_line,blue_line,yellow_line],bbox_to_anchor=(0.5, 1.3),loc='upper center', fontsize=14,ncol=4,fancybox=True, shadow=True)
-  save = 'clientsPerServer.svg'
+  save = 'clientsPerServer.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   ClientsTotals.append([S1ClientsMean,S2ClientsMean,S3ClientsMean,S4ClientsMean])
@@ -648,7 +654,7 @@ def barGraphs(collums, graph):
     ax.set_xticks(ind)
     ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
     ax.legend()
-    save = 'Stalls.svg'
+    save = 'Stalls.pdf'
   else:
     RebuffersTotals.append(defaultMean)
     ax.set_ylabel('Seconds')
@@ -656,7 +662,7 @@ def barGraphs(collums, graph):
     ax.set_xticks(ind)
     ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
     ax.legend()
-    save = 'Rebuffers.svg'
+    save = 'Rebuffers.pdf'
   
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
@@ -670,7 +676,7 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],throughtputTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog2Video')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog4Video')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
     blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
     plt.legend(handles=[red_line,green_line,blue_line])
@@ -691,7 +697,7 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],MMEsTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog2Video')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog4Video')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
     blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
     plt.legend(handles=[red_line,green_line,blue_line])
@@ -709,10 +715,10 @@ def graphtotals(numSegments):
   for i in range (0,4):
     x=np.arange(0,numSegments)
     fig,ax =plt.subplots()
-    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='Fog2Video')
+    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='Fog4Video')
     p2,=plt.plot(x,qualityLevelTotals[i+4],color='g',ls='-.',lw=3, label='Greedy')
     p3,=plt.plot(x,qualityLevelTotals[i+8],color='b',ls=':',lw=3, label='Random')
-    plt.xlabel('Segments')
+    plt.xlabel('Chunks')
     plt.ylabel('Video bitrate(Kbps)')
     red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-3')
     green_line = mlines.Line2D([], [], color='g',markersize=15, label='Tier-2 EP-2')
@@ -736,7 +742,7 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='Fog2Video')
+  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='Fog4Video')
   rects2 = ax.bar(ind, StallsTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, StallsTotals[2], width,label='Random')
   ax.set_ylabel('Number of Stall Events')
@@ -744,7 +750,7 @@ def graphtotals(numSegments):
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'StallsTotals.svg'
+  save = 'StallsTotals.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Stalls Comparation done')
@@ -752,7 +758,7 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2  
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='Fog2Video')
+  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='Fog4Video')
   rects2 = ax.bar(ind, RebuffersTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, RebuffersTotals[2], width,label='Random')
   ax.set_ylabel('Stall Duration (Seconds)')
@@ -760,7 +766,7 @@ def graphtotals(numSegments):
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'RebuffersTotals.svg'
+  save = 'RebuffersTotals.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Rebuffers Comparation done')
@@ -768,7 +774,7 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='Fog2Video')
+  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='Fog4Video')
   rects2 = ax.bar(ind, MeansTotals[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, MeansTotals[2], width,label='Random')
   ax.set_ylabel('Bitrate Average (Kbps)')
@@ -776,13 +782,13 @@ def graphtotals(numSegments):
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
   ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'BitrateTotals.svg'
+  save = 'BitrateTotals.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   ind = np.arange(2)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, MeansBW[0], width,label='Fog2Video')
+  rects1 = ax.bar(ind - width, MeansBW[0], width,label='Fog4Video')
   rects2 = ax.bar(ind, MeansBW[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, MeansBW[2], width,label='Random')
   ax.set_ylabel('Bitrate Average (Kbps)')
@@ -791,7 +797,7 @@ def graphtotals(numSegments):
   ax.legend()
   plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'BestWorstTotals.svg'
+  save = 'BestWorstTotals.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Clients Comparation done.')
@@ -801,17 +807,19 @@ def graphtotals(numSegments):
   width = 0.2
   fig, ax = plt.subplots()
   aux=[np.sum(StallsTotals[0])/40,np.sum(StallsTotals[1])/40,np.sum(StallsTotals[2])/40]
+  print(aux)
   confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(runs)/40),1.96*(np.std(StallsTotals[1])/np.sqrt(runs)/40),1.96*(np.std(StallsTotals[2])/np.sqrt(runs))/40]
+  print(confInt)
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='Fog2Video')
+  #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='Fog4Video')
   #rects2 = ax.bar(ind, np.sum(StallsTotals[1]), width,yerr=(1.96*(np.std(StallsTotals[1])/np.sqrt(runs))),label='Greedy')
   #rects3 = ax.bar(ind, np.sum(StallsTotals[2]),width,yerr=(1.96*(np.std(StallsTotals[2])/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Number of Stall Events')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
   #ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'StallsTotal.svg'
+  save = 'StallsTotal.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Stalls per Clients Done')
@@ -821,17 +829,19 @@ def graphtotals(numSegments):
   width = 0.2  
   fig, ax = plt.subplots()
   aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
+  print(aux)
   confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))/40]
+  print(confInt)
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='Fog2Video')
+  #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='Fog4Video')
   #rects2 = ax.bar(ind, np.sum(RebuffersTotals[1]), width,yerr=(1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs))),label='Greedy')
   #rects3 = ax.bar(ind + width, np.sum(RebuffersTotals[2]),width,yerr=(1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Stall Duration (Seconds)')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
   #ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'RebuffersTotal.svg'
+  save = 'RebuffersTotal.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Rebuffers per Clients Done')
@@ -843,15 +853,15 @@ def graphtotals(numSegments):
   #aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
   #confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))/40]
   #rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  rects1 = ax.bar(ind - width, [bitSwitchDowntotals[0],bitSwitchUptotals[0],bitSwitchtotals[0]],width,yerr=(1.96*(np.std(bitSwitchDowntotals)/np.sqrt(runs))),label='Fog2Video')
-  rects2 = ax.bar(ind, [bitSwitchDowntotals[1],bitSwitchUptotals[1],bitSwitchtotals[1]], width,yerr=(1.96*(np.std(bitSwitchUptotals)/np.sqrt(runs))),label='Greedy')
-  rects3 = ax.bar(ind + width, [bitSwitchDowntotals[2],bitSwitchUptotals[2],bitSwitchtotals[2]],width,yerr=(1.96*(np.std(bitSwitchtotals)/np.sqrt(runs))),label='Random')
+  rects1 = ax.bar(ind - width, [bitSwitchDowntotals[0],bitSwitchUptotals[0],bitSwitchtotals[0]],width,yerr=[bitSwitchDowntotalsConfInt[0],bitSwitchUptotalsConfInt[0],bitSwitchtotalsConfInt[0]],label='Fog4Video')
+  rects2 = ax.bar(ind, [bitSwitchDowntotals[1],bitSwitchUptotals[1],bitSwitchtotals[1]], width,yerr=[bitSwitchDowntotalsConfInt[1],bitSwitchUptotalsConfInt[1],bitSwitchtotalsConfInt[1]],label='Greedy')
+  rects3 = ax.bar(ind + width, [bitSwitchDowntotals[2],bitSwitchUptotals[2],bitSwitchtotals[2]],width,yerr=[bitSwitchDowntotalsConfInt[2],bitSwitchUptotalsConfInt[2],bitSwitchtotalsConfInt[2]],label='Random')
   ax.set_ylabel('Bitrate Switch')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Downgrade', 'Upgrade', 'Total'))
   ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'BitrateSwitchs.svg'
+  save = 'BitrateSwitchs.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Bitrate Switch Done')
@@ -865,11 +875,11 @@ def graphtotals(numSegments):
       aux=[]
       for k in range (0,len(ClientsTotals[i][j])):
         if j==0:
-          aux.append(ClientsTotals[i][j][k]*0.344)
+          aux.append(ClientsTotals[i][j][k]*0.42408)
         elif j==3:
-          aux.append(ClientsTotals[i][j][k]*0.220)
+          aux.append(ClientsTotals[i][j][k]*0.07272)
         else:
-          aux.append(ClientsTotals[i][j][k]*0.246)
+          aux.append(ClientsTotals[i][j][k]*0.22896)
       costSum.append(aux)
     cost.append(np.sum(costSum,0))
   for i in range (0, len(cost)):
@@ -879,23 +889,26 @@ def graphtotals(numSegments):
   fig,ax =plt.subplots()
   ind = np.arange(0.0,1.5,0.5)
   width = 0.2
-  #p1,=plt.plot(x,cost[0],color='b',ls='--',lw=1, label='Fog2Video')
+  #p1,=plt.plot(x,cost[0],color='b',ls='--',lw=1, label='Fog4Video')
   #p2,=plt.plot(x,cost[1],color='orange',ls='-.',lw=1, label='Greedy')
   #p3,=plt.plot(x,cost[2],color='green',ls=':',lw=1, label='Random')
-  rects1 = ax.bar(ind, [np.mean(cost[0]),np.mean(cost[1]),np.mean(cost[2])],width,yerr=[(1.96*(np.std((cost[0]))/np.sqrt(runs))),(1.96*(np.std((cost[1]))/np.sqrt(runs))),(1.96*(np.std((cost[2]))/np.sqrt(runs)))],color=(('tab:blue'),('tab:orange'),('tab:green')))
+  rects1 = ax.bar(ind, [np.mean(cost[0])/6,np.mean(cost[1])/6,np.mean(cost[2])/6],width,yerr=[(1.96*(np.std((cost[0]))/np.sqrt(runs)))/6,(1.96*(np.std((cost[1]))/np.sqrt(runs)))/6,(1.96*(np.std((cost[2]))/np.sqrt(runs)))/6],color=(('tab:blue'),('tab:orange'),('tab:green')))
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
-  plt.xlabel('Segments')
-  plt.ylabel('Monetary Cost (U$ 10⁻⁶)')
+  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
+  #plt.xlabel('Chunks')
+  plt.ylabel('Monetary Cost per hour (U$)')
+  print(np.mean(cost[0]),np.mean(cost[1]),np.mean(cost[2]))
+  print((1.96*(np.std((cost[0]))/np.sqrt(runs))),(1.96*(np.std((cost[1]))/np.sqrt(runs))),(1.96*(np.std((cost[2]))/np.sqrt(runs))))
   #plt.xlim((1,300))
-  plt.legend(fancybox=True, shadow=True)
+  #plt.legend(fancybox=True, shadow=True)
   plt.grid(True,alpha=0.4,axis='y',linestyle='--')
-  plt.savefig('Cost.svg',bbox_inches="tight",dpi=300)
+  plt.savefig('Cost.pdf',bbox_inches="tight",dpi=300)
   plt.close()
   print('Cost Comparation Done')
 
   print('Bitrate Comparation')
   bitrateMean=[]
+  confInts=[]
   '''for i in range (0,3):
     #aux=np.sum(qualityLevelTotals[4*i:((4*i)+3)],0)
     aux=QualityMeanTotal[i]
@@ -919,20 +932,27 @@ def graphtotals(numSegments):
       mean.append(bitrate.mean(axis=0))
       final.append(np.mean(bitrate[-21:-1]))
     bitrateMean.append([np.mean(begin),np.mean(mean),np.mean(final)])
+    confInts.append([(1.96*(np.std(begin)/np.sqrt(60))),(1.96*(np.std(mean)/np.sqrt(60))),(1.96*(np.std(final)/np.sqrt(60)))])
     os.chdir('..')
   ind = np.arange(3)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, bitrateMean[0], width,label='Fog2Video')
-  rects2 = ax.bar(ind, bitrateMean[1], width,label='Greedy')
-  rects3 = ax.bar(ind + width, bitrateMean[2], width,label='Random')
-  ax.set_ylabel('Bitrate Average (Kbps)')
+  rects1 = ax.bar(ind - width, bitrateMean[0], width,yerr=confInts[0],label='Fog4Video')
+  rects2 = ax.bar(ind, bitrateMean[1], width,yerr=confInts[1],label='Greedy')
+  rects3 = ax.bar(ind + width, bitrateMean[2], width,yerr=confInts[2],label='Random')
+  print(bitrateMean[0])
+  print(bitrateMean[1])
+  print(bitrateMean[2])
+  print(confInts[0])
+  print(confInts[1])
+  print(confInts[2])
+  ax.set_ylabel('Bitrate (Kbps)')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Initial Bitrate', 'Bitrate Average', 'Final Bitrate'))
-  ax.legend()
+  ax.legend(loc='upper left')
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
-  save = 'BitrateMean.svg'
+  #plt.yticks( [0,400,650,1000,1500,2250,3400,4700,6000], ('0','400', '650', '1000', '1500', '2250','3400','4700','6000') )
+  save = 'BitrateMean.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Bitrate Comparation Done')
@@ -962,14 +982,36 @@ def graphtotals(numSegments):
   bp = ax.boxplot(bitrates, positions=pos,notch=1,bootstrap=1000,showmeans=True,meanline=True)
   ax.set_xlabel('Mechanism')
   ax.set_ylabel('Bitrate (Kbps)')
-  ax.set_xticklabels(('Fog2Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
   plt.setp(bp['whiskers'], color='k', linestyle='-')
   plt.setp(bp['fliers'], markersize=3.0)
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'Boxplot.svg'
+  save = 'Boxplot.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Bitrate Comparation Boxplot Done')
+
+  time=0
+  cl=0
+  time2=0
+  cl2=0
+  os.chdir(str(0))
+  files= '*bufferUnderrunLog*'
+  throughputFiles = glob.glob(files)
+  throughputFiles.sort()
+  for j in range (0,len(throughputFiles)):
+    name = throughputFiles[j]
+    df = pd.read_csv(name, sep=';',index_col=False)
+    bitrate = np.array(df['Buffer_Underrun_Duration'])
+    if len(bitrate)==1:
+      time+=bitrate
+      cl+=1
+    if len(bitrate)>1:
+      time2+=np.sum(bitrate)
+      cl2+=1
+  print(time,cl)
+  print(time2,cl2)
+  os.chdir('..')
   '''
   bitrateMean=[]
   for i in range (0,3):
@@ -980,7 +1022,7 @@ def graphtotals(numSegments):
   ind = np.arange(3)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, bitrateMean[0], width,label='Fog2Video')
+  rects1 = ax.bar(ind - width, bitrateMean[0], width,label='Fog4Video')
   rects2 = ax.bar(ind, bitrateMean[1], width,label='Greedy')
   rects3 = ax.bar(ind + width, bitrateMean[2], width,label='Random')
   ax.set_ylabel('Bitrate Average (Kbps)')
@@ -988,7 +1030,7 @@ def graphtotals(numSegments):
   ax.set_xticklabels(('Initial Bitrate', 'Bitrate Average', 'Final Bitrate'))
   ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
-  save = 'BitrateMean.svg'
+  save = 'BitrateMean.pdf'
   plt.savefig(save,bbox_inches="tight",dpi=300)
   plt.close()
   print('Bitrate Comparation Boxplot Done')'''
