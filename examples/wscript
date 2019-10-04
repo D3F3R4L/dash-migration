@@ -5,5 +5,5 @@ def build(bld):
     	['dash-migration', 'internet', 'wifi', 'buildings', 'applications', 'point-to-point','internet-apps'])
     obj.source = 'dash-migration-v2.cc'
     obj = bld.create_ns3_program('dash-migrationLTE-v2', 
-    	['dash-migration', 'internet', 'wifi', 'buildings', 'applications', 'point-to-point','internet-apps'])
+    	['dash-migration', 'internet', 'wifi', 'buildings', 'applications', 'point-to-point','internet-apps','lte','netanim'])
     obj.source = 'dash-migrationLTE-v2.cc'
