@@ -666,8 +666,8 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   simulationId = 1;
-  numberOfUeNodes = 1;
-  uint16_t numberOfEnbNodes = 1;
+  numberOfUeNodes = 15;
+  uint16_t numberOfEnbNodes = 80;
   uint32_t numberOfServers = 4;
   std::string adaptationAlgo = "festive";
   std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
@@ -676,7 +676,7 @@ main (int argc, char *argv[])
   uint16_t pol=1;
 
   //lastRx=[numberOfUeNodes];
-  //LogComponentEnable("dash-migrationExample", LOG_LEVEL_ALL);
+  LogComponentEnable("dash-migrationExample", LOG_LEVEL_ALL);
 
   CommandLine cmd;
   cmd.Usage ("Simulation of streaming with DASH.\n");
@@ -713,16 +713,15 @@ main (int argc, char *argv[])
   lteHelper->SetSchedulerAttribute("PssFdSchedulerType", StringValue("CoItA")); // PF scheduler type in PSS
   lteHelper->SetHandoverAlgorithmType("ns3::A2A4RsrqHandoverAlgorithm");
   lteHelper->SetHandoverAlgorithmAttribute("ServingCellThreshold",
-  UintegerValue(34));
+  UintegerValue(32));
   lteHelper->SetHandoverAlgorithmAttribute("NeighbourCellOffset",
-  UintegerValue(0));
+  UintegerValue(3));
   lteHelper->EnableTraces();
 
   // Propagation Parameters
   lteHelper->SetEnbDeviceAttribute("DlEarfcn", UintegerValue(100));
   lteHelper->SetEnbDeviceAttribute("UlEarfcn", UintegerValue(18100));
-  lteHelper->SetAttribute("PathlossModel",
-      StringValue("ns3::NakagamiPropagationLossModel"));
+  //lteHelper->SetAttribute("PathlossModel",StringValue("ns3::NakagamiPropagationLossModel"));
 
   /*  //-------------Antenna Parameters
   lteHelper->SetEnbAntennaModelType("ns3::CosineAntennaModel");
