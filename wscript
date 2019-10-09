@@ -7,8 +7,8 @@
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('dash-migration')
-#    module = bld.create_ns3_module('dash-migration', ['core', 'internet','wave'])
+#    module = bld.create_ns3_module('dash-migration')
+    module = bld.create_ns3_module('dash-migration', ['core', 'internet','wave','flow-monitor'])
     module.source = [
         'model/festive.cc',
         'model/panda.cc',

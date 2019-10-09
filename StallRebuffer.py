@@ -51,13 +51,13 @@ def bufferUnderrunGraphs():
             S1Client=False
           S1Nstalls+=1
           S1timeTotal+=float(fields[3])
-        elif str(fields[0])=='2.0.0.1' :
+        elif str(fields[0])=='2.0.0.1' or str(fields[0])=="1.0.0.3" :
           if S2Client:
             S2Clients+=1
             S2Client=False
           S2Nstalls+=1
           S2timeTotal+=float(fields[3])
-        elif str(fields[0])=='3.0.0.1' :
+        elif str(fields[0])=='3.0.0.1' or str(fields[0])=="1.0.0.5":
           if S3Client:
             S3Clients+=1
             S3Client=False

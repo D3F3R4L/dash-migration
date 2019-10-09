@@ -23,6 +23,8 @@
 #include <errno.h>
 #include "ns3/internet-apps-module.h"
 #include "ns3/flow-monitor-module.h"
+#include "ns3/flow-monitor-helper.h"
+#include "ns3/ipv4-flow-classifier.h"
 #include "ns3/tcp-stream-helper.h"
 #include "ns3/tcp-stream-interface.h"
 #include "ns3/netanim-module.h"
@@ -80,7 +82,7 @@ std::ofstream StartTimeLog;
 std::ofstream ServerScoreLog;
 
 unsigned int handNumber = 0;
-int cell_ue[2][4];
+// int cell_ue[2][4];
 
 void
 LogStall (double sv1,double sv2,double sv3,double cloud)
@@ -353,7 +355,7 @@ getClientsOnServer(ApplicationContainer serverApp, TcpStreamServerHelper serverH
   {
     Simulator::Stop();
   }
-  //Simulator::Schedule(Seconds(1),&getClientsOnServer,serverApp, serverHelper, servers);
+  Simulator::Schedule(Seconds(1),&getClientsOnServer,serverApp, serverHelper, servers);
 }
 
 void
@@ -399,9 +401,9 @@ getRepIndex(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper,
 }
 
 void
-politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,ApplicationContainer serverApp, TcpStreamServerHelper serverHelper,NodeContainer servers)
+politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, std::vector <std::pair <Ptr<Node>, std::string> > clients,TcpStreamServerHelper serverHelper,NodeContainer servers , uint16_t num)
 {
-  getClientsOnServer(serverApp, serverHelper, servers);
+  //getClientsOnServer(serverApp, serverHelper, servers);
   getClientsHandover(clientApps,clientHelper,clients);
   getClientsStallsRebuffers(clientApps,clientHelper,clients);
   Address SvIp;
@@ -411,21 +413,27 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     {
       NS_LOG_UNCOND("SMigracao");
       SvIp=server2Address;
-      ServerHandover(clientApps, clientHelper, SvIp, clients,0);
+      ServerHandover(clientApps, clientHelper, SvIp, clients,num);
     }
   }
   if (type=="AMigracao")
   {
-    if (Simulator::Now()<=Seconds(6))
+    std::string ip = clientHelper.GetServerAddress(clientApps, clients.at (num).first);
+    if (ip=="1.0.0.1")
     {
       SvIp=server3Address;
-      ServerHandover(clientApps, clientHelper, SvIp, clients,0);
-      SvIp=server2Address;
-      Simulator::Schedule(Seconds(2),&ServerHandover,clientApps, clientHelper, SvIp, clients,0);
+      ServerHandover(clientApps, clientHelper, SvIp, clients,num);
+      Simulator::Schedule(Seconds(3),&politica,clientApps,clientHelper,clients,serverHelper,servers,num);
       NS_LOG_UNCOND("AMigracao");
     }
+    else
+    {
+      SvIp=server1Address;
+      ServerHandover(clientApps, clientHelper, SvIp, clients,num);
+      NS_LOG_UNCOND("AMigracao2");
+    }
   }
-  Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+  //Simulator::Schedule(Seconds(5),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
 }
 
 void
@@ -579,11 +587,11 @@ void NotifyConnectionEstablishedUe(std::string context,
     // zero the node's previous connection
     for (uint16_t i =0; i < 2; ++i)
     {
-        ::cell_ue[i][imsi - 1] = 0;
+        //::cell_ue[i][imsi - 1] = 0;
     }
 
     // record the current cell in the matrix
-    ::cell_ue[cellid - 1][imsi - 1] = rnti;
+    // ::cell_ue[cellid - 1][imsi - 1] = rnti;
 }
 
 void NotifyHandoverStartUe(std::string context,
@@ -666,14 +674,14 @@ main (int argc, char *argv[])
   uint64_t segmentDuration = 2000000;
   // The simulation id is used to distinguish log file results from potentially multiple consequent simulation runs.
   simulationId = 1;
-  numberOfUeNodes = 15;
-  uint16_t numberOfEnbNodes = 80;
+  numberOfUeNodes = 20;
+  uint16_t numberOfEnbNodes = 10;
   uint32_t numberOfServers = 4;
   std::string adaptationAlgo = "festive";
-  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuck1A.txt";
+  std::string segmentSizeFilePath = "src/dash-migration/dash/segmentSizesBigBuckVR.txt";
   //bool shortGuardInterval = true;
   int seedValue = 1;
-  uint16_t pol=1;
+  uint16_t pol=2;
 
   //lastRx=[numberOfUeNodes];
   LogComponentEnable("dash-migrationExample", LOG_LEVEL_ALL);
@@ -697,8 +705,10 @@ main (int argc, char *argv[])
   Config::SetDefault ("ns3::LteEnbNetDevice::DlEarfcn", UintegerValue (100));
   Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", UintegerValue (18100));
   
-  Config::SetDefault ("ns3::LteEnbNetDevice::DlBandwidth", UintegerValue (50));
-  Config::SetDefault ("ns3::LteEnbNetDevice::UlBandwidth", UintegerValue (50));
+  Config::SetDefault ("ns3::LteEnbNetDevice::DlBandwidth", UintegerValue (100));
+  Config::SetDefault ("ns3::LteEnbNetDevice::UlBandwidth", UintegerValue (100));
+  Config::SetDefault("ns3::LteEnbRrc::DefaultTransmissionMode",
+        UintegerValue(1));
 
   Config::SetDefault("ns3::TcpSocket::SegmentSize", UintegerValue (1446));
   Config::SetDefault("ns3::TcpSocket::SndBufSize", UintegerValue (524288));
@@ -711,17 +721,17 @@ main (int argc, char *argv[])
   lteHelper->SetSchedulerType("ns3::PssFfMacScheduler");
   lteHelper->SetSchedulerAttribute("nMux", UintegerValue(1)); // the maximum number of UE selected by TD scheduler
   lteHelper->SetSchedulerAttribute("PssFdSchedulerType", StringValue("CoItA")); // PF scheduler type in PSS
-  lteHelper->SetHandoverAlgorithmType("ns3::A2A4RsrqHandoverAlgorithm");
+  lteHelper->SetHandoverAlgorithmType("ns3::PandHandoverAlgorithm");
   lteHelper->SetHandoverAlgorithmAttribute("ServingCellThreshold",
   UintegerValue(32));
   lteHelper->SetHandoverAlgorithmAttribute("NeighbourCellOffset",
-  UintegerValue(3));
+  UintegerValue(5));
   lteHelper->EnableTraces();
 
   // Propagation Parameters
   lteHelper->SetEnbDeviceAttribute("DlEarfcn", UintegerValue(100));
   lteHelper->SetEnbDeviceAttribute("UlEarfcn", UintegerValue(18100));
-  //lteHelper->SetAttribute("PathlossModel",StringValue("ns3::NakagamiPropagationLossModel"));
+  //lteHelper->SetAttribute("PathlossModel",StringValue("ns3::Cost231PropagationLossModel"));
 
   /*  //-------------Antenna Parameters
   lteHelper->SetEnbAntennaModelType("ns3::CosineAntennaModel");
@@ -747,7 +757,7 @@ main (int argc, char *argv[])
 
 // Create p2p links
   PointToPointHelper p2ph;
-  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("35Mb/s")));
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("1Gb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2ph.SetChannelAttribute ("Delay", TimeValue(MilliSeconds(0)));
 
@@ -764,7 +774,7 @@ main (int argc, char *argv[])
       }
       if (u==2)
       {
-        p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Kb/s")));
+        p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("500Kb/s")));
       }
       NetDeviceContainer c = p2ph.Install (router, remoteHosts.Get (u));
       routerDevices.Add (c.Get(0));
@@ -948,6 +958,10 @@ EnbNodes.Create (numberOfEnbNodes);
   //const char * dir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/" + ToString (numberOfUeNodes) + "/").c_str();
   const char * dir = dirTmp.c_str();
   mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  dirTmp = dashLogDirectory + adaptationAlgo + "/" + ToString (numberOfUeNodes) + "/" + ToString (pol) + "/";
+  //const char * dir = (ToString (dashLogDirectory) + ToString (adaptationAlgo) + "/" + ToString (numberOfClients) + "/").c_str();
+  dir = dirTmp.c_str();
+  mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   std::cout << mylogsDir << "\n";
   std::cout << tobascoDir << "\n";
@@ -985,7 +999,7 @@ EnbNodes.Create (numberOfEnbNodes);
   remoteHostMobility.Install(remoteHosts);
 
     // User Devices mobility
-  Ns2MobilityHelper ue_mobil = Ns2MobilityHelper("mobil/5961.tcl");
+  Ns2MobilityHelper ue_mobil = Ns2MobilityHelper("mobil/mobility_25_users.tcl");
   MobilityHelper ueMobility;
   MobilityHelper enbMobility;
   ue_mobil.Install(UeNodes.Begin(), UeNodes.End());
@@ -1114,7 +1128,7 @@ EnbNodes.Create (numberOfEnbNodes);
   for (uint i = 0; i < clientApps.GetN (); i++)
     {
       double startTime = 2.0;
-      clientApps.Get (i)->SetStartTime (Seconds (startTime));
+      clientApps.Get (i)->SetStartTime (Seconds (startTime+(i/10)));
     }
 
 /*
@@ -1176,28 +1190,31 @@ EnbNodes.Create (numberOfEnbNodes);
         anim.UpdateNodeDescription(UeNodes.Get(i), "UE");
         anim.UpdateNodeColor(UeNodes.Get(i), 255, 0, 0);
     }
-
+  
   if (pol==0)
   {
     type="PMigracao";
-    Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+    //Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
   }
   else
   {
     if (pol==1)
     {
       type="SMigracao";
-      Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+      //Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
     }
     else
     {
       if (pol==2)
       {
       type="AMigracao";
-      Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
+      //Simulator::Schedule(Seconds(5.001),&politica,clientApps,clientHelper,clients,serverApp, serverHelper,servers);
       }
     }
   }
+
+  FlowMonitorHelper flowmon;
+  Ptr < FlowMonitor > monitor = flowmon.InstallAll();
   
   InitializeLogFiles (dashLogDirectory, adaptationAlgo,ToString(numberOfUeNodes),ToString(simulationId),ToString(pol));
 
@@ -1209,15 +1226,45 @@ EnbNodes.Create (numberOfEnbNodes);
     Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/HandoverEndOk",
         MakeCallback( & NotifyHandoverEndOkUe));
 
+  //Simulator::Stop(Seconds(7.5));
   NS_LOG_INFO ("Run Simulation.");
   NS_LOG_INFO ("Sim: " << simulationId << "Clients: " << numberOfUeNodes);
-  //Simulator::Schedule(Seconds(5),&getClientsOnServer,serverApp, serverHelper, servers);
+  Simulator::Schedule(Seconds(5),&getClientsOnServer,serverApp, serverHelper, servers);
   Simulator::Schedule(Seconds(2),&getThropughputServer,serverApp, serverHelper,servers);
   Simulator::Schedule(Seconds(2),&getThropughputClients,clientApps,clientHelper,clients);
   Simulator::Schedule(Seconds(3),&getStall,clientApps,clientHelper,clients);
   Simulator::Schedule(Seconds(10),&getStartTime,clientApps,clientHelper,clients);
+  if (pol=!0)
+  {
+    Simulator::Schedule(Seconds(4.12),&politica,clientApps,clientHelper,clients, serverHelper,servers,13);
+    Simulator::Schedule(Seconds(4.72),&politica,clientApps,clientHelper,clients, serverHelper,servers,6);
+    Simulator::Schedule(Seconds(6.88),&politica,clientApps,clientHelper,clients, serverHelper,servers,19);
+    Simulator::Schedule(Seconds(9.76),&politica,clientApps,clientHelper,clients, serverHelper,servers,0);
+    Simulator::Schedule(Seconds(12.84),&politica,clientApps,clientHelper,clients, serverHelper,servers,3);
+    Simulator::Schedule(Seconds(15.48),&politica,clientApps,clientHelper,clients, serverHelper,servers,13);
+    Simulator::Schedule(Seconds(64.48),&politica,clientApps,clientHelper,clients, serverHelper,servers,8);
+    Simulator::Schedule(Seconds(68.56),&politica,clientApps,clientHelper,clients, serverHelper,servers,3);
+    Simulator::Schedule(Seconds(80.32),&politica,clientApps,clientHelper,clients, serverHelper,servers,17);
+    Simulator::Schedule(Seconds(81.48),&politica,clientApps,clientHelper,clients, serverHelper,servers,6);
+    Simulator::Schedule(Seconds(99.56),&politica,clientApps,clientHelper,clients, serverHelper,servers,3);
+  }
   //Simulator::Schedule(Seconds(1),&throughput,flowMonitor,classifier);
   Simulator::Run ();
+  monitor->CheckForLostPackets();
+  Ptr < Ipv4FlowClassifier > classifier = DynamicCast < Ipv4FlowClassifier > (flowmon.GetClassifier());
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats();
+  for (std::map < FlowId, FlowMonitor::FlowStats > ::const_iterator i = stats.begin(); i != stats.end(); ++i) {
+    if (i->first > 2) {
+      Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
+      std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+      std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
+      std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
+      std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000 << " Mbps\n";
+      std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
+      std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+      std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000 << " Mbps\n";
+    }
+  }
   //flowMonitor->SerializeToXmlFile ("results.xml" , true, true );
   Simulator::Destroy ();
   NS_LOG_INFO ("Done.");
