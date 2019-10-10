@@ -423,7 +423,7 @@ politica(ApplicationContainer clientApps, TcpStreamClientHelper clientHelper, st
     {
       SvIp=server3Address;
       ServerHandover(clientApps, clientHelper, SvIp, clients,num);
-      Simulator::Schedule(Seconds(3),&politica,clientApps,clientHelper,clients,serverHelper,servers,num);
+      Simulator::Schedule(Seconds(9),&politica,clientApps,clientHelper,clients,serverHelper,servers,num);
       NS_LOG_UNCOND("AMigracao");
     }
     else
@@ -770,7 +770,7 @@ main (int argc, char *argv[])
     {
       if (u==1)
       {
-        p2ph.SetChannelAttribute("Delay", TimeValue(MilliSeconds(100)));
+        p2ph.SetChannelAttribute("Delay", TimeValue(MilliSeconds(20)));
       }
       if (u==2)
       {

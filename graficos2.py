@@ -404,7 +404,7 @@ def qualityGraphs(numSegments):
               bitSwitchDown+=1
       j+=1
     #print(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0))
-    QualityMean.append(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0)/40)
+    QualityMean.append(np.sum([S1Quality,S2Quality,S3Quality,S4Quality],0)/18)
     #print(QualityMean)
     S1Quality=divisor(S1Quality,S1Clients)
     S2Quality=divisor(S2Quality,S2Clients)
@@ -418,9 +418,9 @@ def qualityGraphs(numSegments):
     S2ClientsMean.append(S2Clients)
     S3ClientsMean.append(S3Clients)
     S4ClientsMean.append(S4Clients)
-    bitSwitchMean.append(bitSwitch/40)
-    bitSwitchUpMean.append(bitSwitchUp/40)
-    bitSwitchDownMean.append(bitSwitchDown/40)
+    bitSwitchMean.append(bitSwitch/18)
+    bitSwitchUpMean.append(bitSwitchUp/18)
+    bitSwitchDownMean.append(bitSwitchDown/18)
     k+=1
   QualityMeanTotal.append(toBitrate(np.mean(QualityMean,0)))
   #print(QualityMeanTotal)
@@ -676,9 +676,9 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],throughtputTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog4Video')
-    green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
-    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='SMRL')
+    green_line = mlines.Line2D([], [], color='g',markersize=15, label='No Migration')
+    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Migration after HO')
     plt.legend(handles=[red_line,green_line,blue_line])
     name='Tier-2 EP-{pol}'.format(pol=(i+1))
     if i==3:
@@ -697,9 +697,9 @@ def graphtotals(numSegments):
     plt.plot(timeTotals[i+8],MMEsTotals[i+8],color='b',ls=':',lw=2)
     plt.xlabel('Seconds')
     plt.ylabel('Throughput (Mb/s)')
-    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='Fog4Video')
-    green_line = mlines.Line2D([], [], color='g',markersize=15, label='Greedy')
-    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Random')
+    red_line = mlines.Line2D([], [], color='Red',markersize=15, label='SMRL')
+    green_line = mlines.Line2D([], [], color='g',markersize=15, label='No Migration')
+    blue_line = mlines.Line2D([], [], color='b',markersize=15, label='Migration after HO')
     plt.legend(handles=[red_line,green_line,blue_line])
     name='EMA of Tier-2 EP-{pol}'.format(pol=(i+1))
     if i==3:
@@ -715,9 +715,9 @@ def graphtotals(numSegments):
   for i in range (0,4):
     x=np.arange(0,numSegments)
     fig,ax =plt.subplots()
-    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='Fog4Video')
-    p2,=plt.plot(x,qualityLevelTotals[i+4],color='g',ls='-.',lw=3, label='Greedy')
-    p3,=plt.plot(x,qualityLevelTotals[i+8],color='b',ls=':',lw=3, label='Random')
+    p1,=plt.plot(x,qualityLevelTotals[i],color='r',ls='--',lw=3, label='SMRL')
+    p2,=plt.plot(x,qualityLevelTotals[i+4],color='g',ls='-.',lw=3, label='No Migration')
+    p3,=plt.plot(x,qualityLevelTotals[i+8],color='b',ls=':',lw=3, label='Migration after HO')
     plt.xlabel('Chunks')
     plt.ylabel('Video bitrate(Kbps)')
     red_line = mlines.Line2D([], [], color='r',markersize=15, label='Tier-3')
@@ -742,9 +742,9 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='Fog4Video')
-  rects2 = ax.bar(ind, StallsTotals[1], width,label='Greedy')
-  rects3 = ax.bar(ind + width, StallsTotals[2], width,label='Random')
+  rects1 = ax.bar(ind - width, StallsTotals[0], width,label='SMRL')
+  rects2 = ax.bar(ind, StallsTotals[1], width,label='No Migration')
+  rects3 = ax.bar(ind + width, StallsTotals[2], width,label='Migration after HO')
   ax.set_ylabel('Number of Stall Events')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
@@ -758,9 +758,9 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2  
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='Fog4Video')
-  rects2 = ax.bar(ind, RebuffersTotals[1], width,label='Greedy')
-  rects3 = ax.bar(ind + width, RebuffersTotals[2], width,label='Random')
+  rects1 = ax.bar(ind - width, RebuffersTotals[0], width,label='SMRL')
+  rects2 = ax.bar(ind, RebuffersTotals[1], width,label='No Migration')
+  rects3 = ax.bar(ind + width, RebuffersTotals[2], width,label='Migration after HO')
   ax.set_ylabel('Stall Duration (Seconds)')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
@@ -774,9 +774,9 @@ def graphtotals(numSegments):
   ind = np.arange(4)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='Fog4Video')
-  rects2 = ax.bar(ind, MeansTotals[1], width,label='Greedy')
-  rects3 = ax.bar(ind + width, MeansTotals[2], width,label='Random')
+  rects1 = ax.bar(ind - width, MeansTotals[0], width,label='SMRL')
+  rects2 = ax.bar(ind, MeansTotals[1], width,label='No Migration')
+  rects3 = ax.bar(ind + width, MeansTotals[2], width,label='Migration after HO')
   ax.set_ylabel('Bitrate Average (Kbps)')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Tier-3', 'Tier-2 EP-2', 'Tier-2 EP-1', 'Tier-1'))
@@ -788,9 +788,9 @@ def graphtotals(numSegments):
   ind = np.arange(2)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, MeansBW[0], width,label='Fog4Video')
-  rects2 = ax.bar(ind, MeansBW[1], width,label='Greedy')
-  rects3 = ax.bar(ind + width, MeansBW[2], width,label='Random')
+  rects1 = ax.bar(ind - width, MeansBW[0], width,label='SMRL')
+  rects2 = ax.bar(ind, MeansBW[1], width,label='No Migration')
+  rects3 = ax.bar(ind + width, MeansBW[2], width,label='Migration after HO')
   ax.set_ylabel('Bitrate Average (Kbps)')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Best Client', 'Worst Client'))
@@ -806,9 +806,9 @@ def graphtotals(numSegments):
   ind = np.arange(0.0,1.5,0.5)
   width = 0.2
   fig, ax = plt.subplots()
-  aux=[np.sum(StallsTotals[0])/40,np.sum(StallsTotals[1])/40,np.sum(StallsTotals[2])/40]
+  aux=[np.sum(StallsTotals[0])/18,np.sum(StallsTotals[1])/18,np.sum(StallsTotals[2])/18]
   print(aux)
-  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(runs)/40),1.96*(np.std(StallsTotals[1])/np.sqrt(runs)/40),1.96*(np.std(StallsTotals[2])/np.sqrt(runs))/40]
+  confInt=[1.96*(np.std(StallsTotals[0])/np.sqrt(runs)/18),1.96*(np.std(StallsTotals[1])/np.sqrt(runs)/36),1.96*(np.std(StallsTotals[2])/np.sqrt(runs))/18]
   print(confInt)
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
   #rects1 = ax.bar(ind, np.sum(StallsTotals[0]),width,yerr=(1.96*(np.std(StallsTotals[0])/np.sqrt(runs))),label='Fog4Video')
@@ -816,7 +816,7 @@ def graphtotals(numSegments):
   #rects3 = ax.bar(ind, np.sum(StallsTotals[2]),width,yerr=(1.96*(np.std(StallsTotals[2])/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Number of Stall Events')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('SMRL', 'No Migration', 'Migration after HO'))
   #ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'StallsTotal.pdf'
@@ -828,9 +828,9 @@ def graphtotals(numSegments):
   ind = np.arange(0.0,1.5,0.5)
   width = 0.2  
   fig, ax = plt.subplots()
-  aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
+  aux=[np.sum(RebuffersTotals[0])/18,np.sum(RebuffersTotals[1])/18,np.sum(RebuffersTotals[2])/18]
   print(aux)
-  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(runs)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))/40]
+  confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(40)/18),1.96*(np.std(RebuffersTotals[1])/np.sqrt(40)/18),1.96*(np.std(RebuffersTotals[2])/np.sqrt(40))/36]
   print(confInt)
   rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
   #rects1 = ax.bar(ind - width, np.sum(RebuffersTotals[0]),width,yerr=(1.96*(np.std(RebuffersTotals[0])/np.sqrt(runs))),label='Fog4Video')
@@ -838,7 +838,7 @@ def graphtotals(numSegments):
   #rects3 = ax.bar(ind + width, np.sum(RebuffersTotals[2]),width,yerr=(1.96*(np.std(RebuffersTotals[2])/np.sqrt(runs))),label='Random')
   ax.set_ylabel('Stall Duration (Seconds)')
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('SMRL', 'No Migration', 'Migration after HO'))
   #ax.legend()
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
   save = 'RebuffersTotal.pdf'
@@ -853,9 +853,9 @@ def graphtotals(numSegments):
   #aux=[np.sum(RebuffersTotals[0])/40,np.sum(RebuffersTotals[1])/40,np.sum(RebuffersTotals[2])/40]
   #confInt=[1.96*(np.std(RebuffersTotals[0])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[1])/np.sqrt(33)/40),1.96*(np.std(RebuffersTotals[2])/np.sqrt(33))/40]
   #rects1 = ax.bar(ind, aux,width,yerr=confInt,color=(('tab:blue'),('tab:orange'),('tab:green')))
-  rects1 = ax.bar(ind - width, [bitSwitchDowntotals[0],bitSwitchUptotals[0],bitSwitchtotals[0]],width,yerr=[bitSwitchDowntotalsConfInt[0],bitSwitchUptotalsConfInt[0],bitSwitchtotalsConfInt[0]],label='Fog4Video')
-  rects2 = ax.bar(ind, [bitSwitchDowntotals[1],bitSwitchUptotals[1],bitSwitchtotals[1]], width,yerr=[bitSwitchDowntotalsConfInt[1],bitSwitchUptotalsConfInt[1],bitSwitchtotalsConfInt[1]],label='Greedy')
-  rects3 = ax.bar(ind + width, [bitSwitchDowntotals[2],bitSwitchUptotals[2],bitSwitchtotals[2]],width,yerr=[bitSwitchDowntotalsConfInt[2],bitSwitchUptotalsConfInt[2],bitSwitchtotalsConfInt[2]],label='Random')
+  rects1 = ax.bar(ind - width, [bitSwitchDowntotals[0],bitSwitchUptotals[0],bitSwitchtotals[0]],width,yerr=[bitSwitchDowntotalsConfInt[0],bitSwitchUptotalsConfInt[0],bitSwitchtotalsConfInt[0]],label='SMRL')
+  rects2 = ax.bar(ind, [bitSwitchDowntotals[1],bitSwitchUptotals[1],bitSwitchtotals[1]], width,yerr=[bitSwitchDowntotalsConfInt[1],bitSwitchUptotalsConfInt[1],bitSwitchtotalsConfInt[1]],label='No Migration')
+  rects3 = ax.bar(ind + width, [bitSwitchDowntotals[2],bitSwitchUptotals[2],bitSwitchtotals[2]],width,yerr=[bitSwitchDowntotalsConfInt[2],bitSwitchUptotalsConfInt[2],bitSwitchtotalsConfInt[2]],label='Migration after HO')
   ax.set_ylabel('Bitrate Switch')
   ax.set_xticks(ind)
   ax.set_xticklabels(('Downgrade', 'Upgrade', 'Total'))
@@ -894,7 +894,7 @@ def graphtotals(numSegments):
   #p3,=plt.plot(x,cost[2],color='green',ls=':',lw=1, label='Random')
   rects1 = ax.bar(ind, [np.mean(cost[0])/6,np.mean(cost[1])/6,np.mean(cost[2])/6],width,yerr=[(1.96*(np.std((cost[0]))/np.sqrt(runs)))/6,(1.96*(np.std((cost[1]))/np.sqrt(runs)))/6,(1.96*(np.std((cost[2]))/np.sqrt(runs)))/6],color=(('tab:blue'),('tab:orange'),('tab:green')))
   ax.set_xticks(ind)
-  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('SMRL', 'No Migration', 'Migration after HO'))
   #plt.xlabel('Chunks')
   plt.ylabel('Monetary Cost per hour (U$)')
   print(np.mean(cost[0]),np.mean(cost[1]),np.mean(cost[2]))
@@ -937,9 +937,9 @@ def graphtotals(numSegments):
   ind = np.arange(3)
   width = 0.2
   fig, ax = plt.subplots()
-  rects1 = ax.bar(ind - width, bitrateMean[0], width,yerr=confInts[0],label='Fog4Video')
-  rects2 = ax.bar(ind, bitrateMean[1], width,yerr=confInts[1],label='Greedy')
-  rects3 = ax.bar(ind + width, bitrateMean[2], width,yerr=confInts[2],label='Random')
+  rects1 = ax.bar(ind - width, bitrateMean[0], width,yerr=confInts[0],label='SMRL')
+  rects2 = ax.bar(ind, bitrateMean[1], width,yerr=confInts[1],label='No Migration')
+  rects3 = ax.bar(ind + width, bitrateMean[2], width,yerr=confInts[2],label='Migration after HO')
   print(bitrateMean[0])
   print(bitrateMean[1])
   print(bitrateMean[2])
@@ -982,7 +982,7 @@ def graphtotals(numSegments):
   bp = ax.boxplot(bitrates, positions=pos,notch=1,bootstrap=1000,showmeans=True,meanline=True)
   ax.set_xlabel('Mechanism')
   ax.set_ylabel('Bitrate (Kbps)')
-  ax.set_xticklabels(('Fog4Video', 'Greedy', 'Random'))
+  ax.set_xticklabels(('SMRL', 'No Migration', 'Migration after HO'))
   plt.setp(bp['whiskers'], color='k', linestyle='-')
   plt.setp(bp['fliers'], markersize=3.0)
   plt.grid(True,axis='y',alpha=0.4,linestyle='--')
